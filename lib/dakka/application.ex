@@ -7,6 +7,8 @@ defmodule Dakka.Application do
 
   @impl true
   def start(_type, _args) do
+    setup_otel()
+
     children = [
       # Start the Telemetry supervisor
       DakkaWeb.Telemetry,
@@ -36,5 +38,11 @@ defmodule Dakka.Application do
   def config_change(changed, _new, removed) do
     DakkaWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp setup_otel() do
+    OpentelemetryEcto.setup([:dakka, :repo])
+    OpentelemetryLiveView.setup()
+    OpentelemetryPhoenix.setup()
   end
 end

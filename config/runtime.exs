@@ -112,4 +112,39 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  # Setup otel
+  config :opentelemetry,
+    resource: [
+      service: [
+        name: System.get_env("FLY_APP_NAME", "Dakka App"),
+        namespace: "Dakka",
+        instance: [
+          id: System.get_env("FLY_ALLOC_ID")
+        ]
+        # ...
+      ],
+      host: [
+        name: host
+        # ...
+      ],
+      cloud: [
+        provider: "fly_io",
+        region: %{
+          id: System.get_env("FLY_REGION")
+        }
+      ]
+    ]
+
+  config :opentelemetry_exporter,
+    otlp_protocol: :http_protobuf,
+    otlp_endpoint: "https://api.honeycomb.io:443",
+    otlp_headers: [
+      {"x-honeycomb-team", System.get_env("HONEYCOMB_API_KEY")},
+      {"x-honeycomb-dataset", System.get_env("FLY_APP_NAME")}
+    ]
+
+  config :opentelemetry,
+    span_processor: :batch,
+    exporter: :otlp
 end

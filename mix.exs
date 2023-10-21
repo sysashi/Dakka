@@ -56,7 +56,18 @@ defmodule Dakka.MixProject do
       {:ecto_psql_extras, "~> 0.6"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:slugify, "~> 1.3"},
-      {:recase, "~> 0.5"}
+      {:recase, "~> 0.5"},
+
+      # otel
+      {:opentelemetry_exporter, "~> 1.4"},
+      {:opentelemetry_api, "~> 1.2"},
+      {:opentelemetry, "~> 1.3", override: true},
+      {:opentelemetry_ecto, "~> 1.0"},
+      {:opentelemetry_phoenix,
+       github: "open-telemetry/opentelemetry-erlang-contrib",
+       branch: "main",
+       subdir: "instrumentation/opentelemetry_phoenix"},
+      {:opentelemetry_liveview, "~> 1.0-rc.4"}
     ]
   end
 
