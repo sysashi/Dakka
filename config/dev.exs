@@ -1,11 +1,11 @@
 import Config
 
 # Configure your database
-config :dndah, Dndah.Repo,
+config :dakka, Dakka.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "dndah_dev",
+  database: "dakka_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -16,7 +16,7 @@ config :dndah, Dndah.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :dndah, DndahWeb.Endpoint,
+config :dakka, DakkaWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4001],
@@ -53,17 +53,17 @@ config :dndah, DndahWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :dndah, DndahWeb.Endpoint,
+config :dakka, DakkaWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/dndah_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/dakka_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :dndah, dev_routes: true
+config :dakka, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"

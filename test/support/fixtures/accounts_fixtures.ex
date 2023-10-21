@@ -1,7 +1,7 @@
-defmodule Dndah.AccountsFixtures do
+defmodule Dakka.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Dndah.Accounts` context.
+  entities via the `Dakka.Accounts` context.
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
@@ -18,7 +18,7 @@ defmodule Dndah.AccountsFixtures do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> Dndah.Accounts.register_user()
+      |> Dakka.Accounts.register_user()
 
     user
   end

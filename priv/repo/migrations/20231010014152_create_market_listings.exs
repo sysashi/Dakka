@@ -1,4 +1,4 @@
-defmodule Dndah.Repo.Migrations.CreateMarketListings do
+defmodule Dakka.Repo.Migrations.CreateMarketListings do
   use Ecto.Migration
 
   def change do

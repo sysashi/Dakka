@@ -1,4 +1,4 @@
-defmodule Dndah.Repo.Migrations.CreateUsersAuthTables do
+defmodule Dakka.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do

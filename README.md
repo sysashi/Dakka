@@ -1,4 +1,4 @@
-# Dndah
+# Dakka
 
 To start your Phoenix server:
 

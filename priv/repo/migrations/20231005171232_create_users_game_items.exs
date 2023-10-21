@@ -1,4 +1,4 @@
-defmodule Dndah.Repo.Migrations.CreateUserGameItems do
+defmodule Dakka.Repo.Migrations.CreateUserGameItems do
   use Ecto.Migration
 
   def change do

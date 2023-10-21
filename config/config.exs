@@ -7,18 +7,18 @@
 # General application configuration
 import Config
 
-config :dndah,
-  ecto_repos: [Dndah.Repo]
+config :dakka,
+  ecto_repos: [Dakka.Repo]
 
 # Configures the endpoint
-config :dndah, DndahWeb.Endpoint,
+config :dakka, DakkaWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   url: [host: "localhost"],
   render_errors: [
-    formats: [html: DndahWeb.ErrorHTML, json: DndahWeb.ErrorJSON],
+    formats: [html: DakkaWeb.ErrorHTML, json: DakkaWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Dndah.PubSub,
+  pubsub_server: Dakka.PubSub,
   live_view: [signing_salt: "vQah1+0z"]
 
 # Configures the mailer
@@ -28,7 +28,7 @@ config :dndah, DndahWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :dndah, Dndah.Mailer, adapter: Swoosh.Adapters.Local
+config :dakka, Dakka.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
@@ -63,7 +63,7 @@ config :phoenix, :json_library, Jason
 # Cldr config
 config :ex_cldr,
   default_locale: "en",
-  default_backend: Dndah.Cldr
+  default_backend: Dakka.Cldr
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
