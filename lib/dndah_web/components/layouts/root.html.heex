@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" class="[scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix=" · Dakka">
+      <%= assigns[:page_title] || "Dakka" %>
+    </.live_title>
+    <meta name="description" content="Unofficial experimental Dark and Darker market" />
+    <meta property="og:title" content="Dakka: Unofficial DnD Market" />
+    <meta property="og:site_name" content="Dakka" />
+    <meta property="og:description" content="Unofficial experimental Dark and Darker market" />
+    <meta property="og:type" content="website" />
+
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+  </head>
+  <body class="bg-zinc-900 antialiased flex flex-col min-h-screen">
+    <%= @inner_content %>
+    <footer class="px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between border-t border-zinc-700 py-4 text-sm text-zinc-600">
+        Unofficial & experimental DnD Market.
+        Not affiliated with IRONMACE Co., Ltd.
+      </div>
+    </footer>
+  </body>
+</html>
