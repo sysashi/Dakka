@@ -270,7 +270,7 @@ defmodule DakkaWeb.MarketLive do
     {:noreply, socket}
   end
 
-  def handle_info({Market, %mod{offer: offer}}, socket)
+  def handle_info({Market, %mod{offer: offer} = event}, socket)
       when mod in [
              OfferAccepted,
              OfferCancelled,
@@ -283,6 +283,7 @@ defmodule DakkaWeb.MarketLive do
       socket
       |> stream_insert(:listings, listing, at: -1)
       |> push_event("highlight", %{id: "listings-#{listing.id}"})
+      |> maybe_put_event_flash_message(event)
 
     {:noreply, socket}
   end
@@ -320,4 +321,18 @@ defmodule DakkaWeb.MarketLive do
   defp price_set?(listing) do
     listing.price_gold || listing.price_golden_keys
   end
+
+  ## Event flashes
+
+  defp maybe_put_event_flash_message(socket, %mod{} = _event) do
+    if message = event_message(mod) do
+      put_flash(socket, :info, message)
+    else
+      socket
+    end
+  end
+
+  defp event_message(OfferAccepted), do: "Your offer has been accepted"
+  defp event_message(OfferDeclined), do: "Your offer has been declined"
+  defp event_message(_), do: nil
 end
