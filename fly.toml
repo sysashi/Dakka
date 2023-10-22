@@ -1,0 +1,31 @@
+# fly.toml app configuration file generated for dakka on 2023-10-21T21:26:05+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "dakka"
+primary_region = "ams"
+kill_signal = "SIGTERM"
+swap_size_mb = 512
+
+[build]
+
+[deploy]
+  release_command = "/app/bin/migrate"
+
+[env]
+  PORT = "4000"
+  PHX_HOST = "demo.dakka.live"
+  DEPLOY_ENV_NAME = "demo"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 1000

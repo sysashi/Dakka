@@ -37,6 +37,7 @@ npm-debug.log
 
 # project specific
 
+/env
 /scripts
 /priv/game_data
 /priv/static/images/item_base_icons

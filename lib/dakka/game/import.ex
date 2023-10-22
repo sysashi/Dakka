@@ -183,7 +183,8 @@ defmodule Dakka.Game.Import do
       ItemRarity,
       params,
       conflict_target: [:slug],
-      on_conflict: :nothing,
+      # A hack - just making sure `returning: true` returns existing records
+      on_conflict: {:replace, [:slug]},
       returning: true
     )
   end

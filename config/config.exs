@@ -32,7 +32,7 @@ config :dakka, Dakka.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.17.11",
+  version: "0.19.5",
   default: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
@@ -42,7 +42,7 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.3.2",
+  version: "3.3.3",
   default: [
     args: ~w(
       --config=tailwind.config.js
@@ -53,8 +53,10 @@ config :tailwind,
   ]
 
 # Configures Elixir's Logger
-config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
+config :logger, :default_handler, level: :debug
+
+config :logger, :default_formatter,
+  format: "$time $message[$level] $metadata\n",
   metadata: [:request_id]
 
 # Use Jason for JSON parsing in Phoenix
@@ -67,4 +69,27 @@ config :ex_cldr,
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
+
+# Sentry config
+config :sentry,
+  dsn: System.get_env("SENTRY_DSN"),
+  client: Dakka.Utils.SentryFinchHTTPClient,
+  included_environments: :all,
+  environment_name: config_env(),
+  enable_source_code_context: true,
+  root_source_code_paths: [File.cwd!()]
+
+config :dakka, :logger, [
+  {:handler, :sentry_handler, Sentry.LoggerHandler, %{config: %{}}}
+]
+
+config :opentelemetry,
+       :sampler,
+       {
+         OpentelemetryHoneycombSampler,
+         %{
+           root: {Dakka.Utils.HoneycombSampler, %{}}
+         }
+       }
+
 import_config "#{config_env()}.exs"

@@ -9,7 +9,8 @@ defmodule Dakka.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      releases: releases()
     ]
   end
 
@@ -33,7 +34,7 @@ defmodule Dakka.MixProject do
   defp deps do
     [
       {:bcrypt_elixir, "~> 3.0"},
-      {:phoenix, "~> 1.7.7"},
+      {:phoenix, "~> 1.7.9"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
@@ -44,14 +45,15 @@ defmodule Dakka.MixProject do
       # {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.3"},
-      {:finch, "~> 0.13"},
+      {:swoosh, "~> 1.12"},
+      {:finch, "~> 0.16"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
+
       # Remove cowboy?
-      {:plug_cowboy, "~> 2.5"},
+      # {:plug_cowboy, "~> 2.5"},
       {:bandit, "~> 1.0"},
       {:ecto_psql_extras, "~> 0.6"},
       {:ex_cldr_dates_times, "~> 2.0"},
@@ -67,7 +69,11 @@ defmodule Dakka.MixProject do
        github: "open-telemetry/opentelemetry-erlang-contrib",
        branch: "main",
        subdir: "instrumentation/opentelemetry_phoenix"},
-      {:opentelemetry_liveview, "~> 1.0-rc.4"}
+      {:opentelemetry_liveview, "~> 1.0-rc.4"},
+      {:opentelemetry_honeycomb_sampler, "~> 0.1.0"},
+
+      # sentry
+      {:sentry, "~> 9.1"}
     ]
   end
 
@@ -86,6 +92,18 @@ defmodule Dakka.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+    ]
+  end
+
+  defp releases do
+    [
+      dakka: [
+        applications: [
+          dakka: :permanent,
+          opentelemetry_exporter: :permanent,
+          opentelemetry: :temporary
+        ]
+      ]
     ]
   end
 end

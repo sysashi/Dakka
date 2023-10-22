@@ -8,7 +8,7 @@ defmodule Dakka.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Dakka", "contact@example.com"})
+      |> from({"Dakka", "box@dakka.live"})
       |> subject(subject)
       |> text_body(body)
 

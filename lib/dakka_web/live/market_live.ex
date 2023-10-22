@@ -159,6 +159,7 @@ defmodule DakkaWeb.MarketLive do
 
     socket =
       socket
+      |> stream(:listings, [])
       |> assign(page: 1, per_page: 20)
       |> paginate_listings(1)
 

@@ -27,7 +27,6 @@ defmodule Dakka.ItemFilters do
   end
 
   def build(attrs \\ %{}) do
-    IO.inspect(%__MODULE__.Price{})
     changeset(%__MODULE__{price: %__MODULE__.Price{}}, attrs)
   end
 
