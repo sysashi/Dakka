@@ -14,17 +14,16 @@ defmodule DakkaWeb.InventoryLive do
     ListingUpdated
   }
 
-  alias Dakka.Inventory.Events.UserItemCreated
+  alias Dakka.Inventory.Events.{
+    UserItemCreated,
+    UserItemDeleted
+  }
 
   def render(assigns) do
     ~H"""
     <div class="mb-4 border-b border-zinc-700 pb-4">
       <h3 class="text-center mb-2 text-2xl text-gray-500">Add new item</h3>
-      <.live_component
-        module={DakkaWeb.Inventory.AddItemLive}
-        id="add-item"
-        current_user={@current_user}
-      />
+      <.live_component module={DakkaWeb.Inventory.AddItemLive} id="add-item" scope={@scope} />
     </div>
     <article class="flex text-white">
       <section
@@ -35,8 +34,8 @@ defmodule DakkaWeb.InventoryLive do
         <%= for {id, item} <- @streams.items do %>
           <div class="flex flex-col" id={id}>
             <.item_card item={item} show_icon={true} />
-            <div class="mt-2">
-              <.listing :if={item.listing} listing={item.listing} />
+            <div class="mt-2 flex justify-between items-center">
+              <.listing_actions :if={item.listing} listing={item.listing} />
               <.button
                 :if={!item.listing}
                 size={:sm}
@@ -45,6 +44,13 @@ defmodule DakkaWeb.InventoryLive do
               >
                 List on the Market
               </.button>
+              <span
+                class="bg-red-800 p-1 border border-red-900 hover:border-red-600 hover:bg-red-700 hover:cursor-pointer group transition-colors duration-150"
+                phx-click={JS.push("delete-item", value: %{item_id: item.id})}
+                data-confirm="Removing this item will also delete all listings and decline active offers, proceed?"
+              >
+                <.icon name="hero-trash" class="w-5 h-5 text-red-200 mb-0.5 group-hover:text-red-100" />
+              </span>
             </div>
           </div>
         <% end %>
@@ -57,7 +63,7 @@ defmodule DakkaWeb.InventoryLive do
       on_cancel={JS.patch(~p"/inventory")}
     >
       <.live_component
-        current_user={@current_user}
+        scope={@scope}
         module={DakkaWeb.ListingFormComponent}
         id={@listing.id || :new}
         title={@page_title}
@@ -69,7 +75,7 @@ defmodule DakkaWeb.InventoryLive do
     """
   end
 
-  defp listing(assigns) do
+  defp listing_actions(assigns) do
     ~H"""
     <%= case @listing.status do %>
       <% :active -> %>
@@ -95,10 +101,11 @@ defmodule DakkaWeb.InventoryLive do
   end
 
   def mount(_params, _session, socket) do
-    items = Inventory.list_user_items(socket.assigns.current_user)
+    scope = socket.assigns.scope
+    items = Inventory.list_user_items(scope)
 
     if connected?(socket) do
-      Inventory.subscribe(socket.assigns.scope.current_user_id)
+      Inventory.subscribe(scope)
       Market.subscribe({:market, socket.assigns.current_user})
     end
 
@@ -111,6 +118,16 @@ defmodule DakkaWeb.InventoryLive do
 
   def handle_params(params, _uri, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  def handle_event("delete-item", %{"item_id" => item_id}, socket) do
+    case Inventory.delete_user_item(socket.assigns.scope, item_id) do
+      {:ok, item} ->
+        {:noreply, stream_delete(socket, :items, item)}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Error occured")}
+    end
   end
 
   def handle_info({Market, market_event}, socket) do
@@ -126,7 +143,7 @@ defmodule DakkaWeb.InventoryLive do
   end
 
   defp apply_action(socket, :new_listing, %{"id" => id}) do
-    item = Inventory.get_user_item!(socket.assigns.current_user, id)
+    item = Inventory.get_user_item!(socket.assigns.scope, id)
 
     socket
     |> assign(:page_title, "Inventory - Create Listing")
@@ -134,10 +151,8 @@ defmodule DakkaWeb.InventoryLive do
   end
 
   defp apply_action(socket, :edit_listing, %{"id" => id} = params) do
-    user = socket.assigns.current_user
-
     listing =
-      user
+      socket.assigns.scope
       |> Market.get_listing_by_seller_item_id!(id)
       |> maybe_mark_relist(params)
 
@@ -159,12 +174,14 @@ defmodule DakkaWeb.InventoryLive do
               ListingSold,
               ListingUpdated
             ] do
-    stream_insert(
-      socket,
-      :items,
-      Inventory.get_user_item!(socket.assigns.current_user, listing.user_game_item_id),
-      at: -1
-    )
+    # Have to check if item is still avaiable (not deleted)
+    case Inventory.find_user_item(socket.assigns.scope, listing.user_game_item_id) do
+      {:ok, item} ->
+        stream_insert(socket, :items, item, at: -1)
+
+      {:error, :not_found} ->
+        socket
+    end
   end
 
   defp handle_market_event(socket, _event) do
@@ -177,5 +194,11 @@ defmodule DakkaWeb.InventoryLive do
     socket
     |> stream_insert(:items, item, at: 0)
     |> push_event("highlight", %{id: "items-#{item.id}"})
+  end
+
+  defp handle_inventory_event(socket, %UserItemDeleted{user_item: item}) do
+    socket
+    |> push_event("highlight", %{id: "items-#{item.id}"})
+    |> stream_delete(:items, item)
   end
 end

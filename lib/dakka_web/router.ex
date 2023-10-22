@@ -85,14 +85,16 @@ defmodule DakkaWeb.Router do
 
       live "/entity_search", Game.EntitySearchLive, :index
       live "/add_item", Inventory.AddItemLive, :index
+
       live "/market", MarketLive, :index
       live "/market/offer/:listing_id", MarketLive, :new_offer
-      live "/offers", OffersLive, :index
-      live "/trade/:id", TradeLive, :index
 
       live "/inventory", InventoryLive, :index
       live "/inventory/list_item/:id", InventoryLive, :new_listing
       live "/inventory/edit_listing/:id", InventoryLive, :edit_listing
+
+      live "/offers", OffersLive, :index
+      live "/trade/:id", TradeLive, :index
     end
   end
 

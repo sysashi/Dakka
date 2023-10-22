@@ -12,6 +12,7 @@ defmodule Dakka.Market do
   alias Dakka.Repo
   alias Dakka.Scope
   alias Dakka.Inventory
+  alias Dakka.Inventory.UserGameItem
   alias Dakka.Accounts.User
 
   alias Dakka.Market.{
@@ -32,13 +33,9 @@ defmodule Dakka.Market do
     TradeMessage
   }
 
-  # item base: x
-  # rarities
-  # property: (key, value | values /required class/)
-  # (impl|expl) mod: (key, value)
-
   def topic(:market), do: "market_events"
   def topic({:market, %User{} = user}), do: "market_events:user:#{user.id}"
+  def topic({:market, %Scope{} = scope}), do: "market_events:user:#{scope.current_user.id}"
   def topic({:listing, %Listing{} = listing}), do: "market_events:listing:#{listing.id}"
   def topic(%ListingOffer{} = offer), do: "market_events:offer:#{offer.id}"
 
@@ -97,11 +94,11 @@ defmodule Dakka.Market do
     |> Repo.one!()
   end
 
-  def get_listing_by_seller_item_id!(%User{} = seller, id) do
+  def get_listing_by_seller_item_id!(%Scope{} = scope, id) do
     Listing
     |> where(deleted: false)
     |> where([l, i], i.id == ^id)
-    |> join(:inner, [l], i in assoc(l, :user_game_item), on: i.user_id == ^seller.id)
+    |> join(:inner, [l], i in assoc(l, :user_game_item), on: i.user_id == ^scope.current_user_id)
     |> join(:inner, [l, i], u in assoc(i, :user))
     |> preload([l, i, u], user_game_item: {i, user: u})
     |> Repo.one!()
@@ -276,6 +273,29 @@ defmodule Dakka.Market do
     end
   end
 
+  def delete_item_listings_multi(%UserGameItem{} = item) do
+    listings_query =
+      Listing
+      |> where(user_game_item_id: ^item.id)
+      |> update(set: [deleted: true])
+      |> select([l], l)
+
+    Multi.new()
+    |> Multi.update_all(:deleted_listings, listings_query, [])
+    |> Multi.update_all(
+      :declined_offers,
+      fn %{deleted_listings: {_, deleted_listings}} ->
+        ids = Enum.map(deleted_listings, & &1.id)
+
+        ListingOffer
+        |> where([o], o.listing_id in ^ids)
+        |> where([o], o.status in [:active, :accepted_by_seller])
+        |> update(set: [status: :declined_listing_deleted])
+      end,
+      []
+    )
+  end
+
   def mark_listing_sold(listing) do
     changeset = Listing.mark_sold(listing)
 
@@ -322,7 +342,7 @@ defmodule Dakka.Market do
     offers_query =
       ListingOffer
       |> where(listing_id: ^listing.id)
-      |> where(status: :active)
+      |> where([o], o.status in [:active, :accepted_by_seller])
       |> update(set: [status: ^new_status])
 
     Multi.update_all(
@@ -611,7 +631,7 @@ defmodule Dakka.Market do
     end
   end
 
-  defp broadcast(topics, event) do
+  def broadcast(topics, event) do
     for topic <- topics do
       Phoenix.PubSub.broadcast(
         @pubsub,

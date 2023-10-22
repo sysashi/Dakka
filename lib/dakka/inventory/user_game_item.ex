@@ -28,4 +28,8 @@ defmodule Dakka.Inventory.UserGameItem do
     item
     |> cast(attrs, [:quantity])
   end
+
+  def delete(item) do
+    change(item, %{deleted: true})
+  end
 end

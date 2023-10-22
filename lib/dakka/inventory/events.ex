@@ -10,4 +10,8 @@ defmodule Dakka.Inventory.Events do
   defmodule UserItemUpdated do
     defstruct user_item: nil
   end
+
+  defmodule UserItemDeleted do
+    defstruct user_item: nil
+  end
 end

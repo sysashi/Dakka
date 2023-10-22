@@ -1,6 +1,8 @@
 defmodule DakkaWeb.OffersLive do
   use DakkaWeb, :live_view
 
+  require Logger
+
   import DakkaWeb.MarketComponents
 
   alias Dakka.Market
@@ -232,6 +234,11 @@ defmodule DakkaWeb.OffersLive do
       true ->
         socket
     end
+  end
+
+  defp handle_market_event(socket, %event_mod{}) do
+    Logger.debug("OffersLive: ignoring market event - #{event_mod}")
+    socket
   end
 
   defp handle_seller_event(socket, %OfferCreated{offer: offer}) do

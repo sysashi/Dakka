@@ -341,6 +341,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
     user_item = socket.assigns.user_item
 
     case Inventory.create_user_item(
+           socket.assigns.scope,
            user_item,
            params
          ) do
@@ -357,7 +358,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
   end
 
   def handle_async(:fetch_item_base, {:ok, item_base}, socket) do
-    user_item = Inventory.build_user_item(socket.assigns.current_user, item_base)
+    user_item = Inventory.build_user_item(socket.assigns.scope, item_base)
 
     changeset =
       Inventory.user_item_base_changeset(

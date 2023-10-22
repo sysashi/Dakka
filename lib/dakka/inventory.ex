@@ -1,24 +1,21 @@
 defmodule Dakka.Inventory do
   import Ecto.Query, warn: false
 
-  alias Dakka.Repo
-  alias Dakka.Accounts.User
-  alias Dakka.Inventory.{UserGameItem, UserGameItemMod}
   alias Dakka.Game
+  alias Dakka.Game.ItemBaseMod
+  alias Dakka.Inventory.Events.{UserItemCreated, UserItemDeleted}
+  alias Dakka.Inventory.{UserGameItem, UserGameItemMod}
+  alias Dakka.Repo
   alias Dakka.Scope
-  alias Dakka.Game.{ItemBase, ItemBaseMod}
-
-  alias Dakka.Inventory.Events.{
-    UserItemCreated
-  }
 
   alias Ecto.Changeset
+  alias Ecto.Multi
 
   ## Pusub
 
   @pubsub Dakka.PubSub
 
-  def topic(user_id), do: "user_inventory:#{user_id}"
+  def topic(%Scope{} = scope), do: "user_inventory:#{scope.current_user.id}"
 
   def subscribe(topic) do
     Phoenix.PubSub.subscribe(@pubsub, topic(topic))
@@ -38,11 +35,12 @@ defmodule Dakka.Inventory do
     [:explicit_mods, :item_mod, :strings]
   ]
 
-  def get_user_item!(user, id) do
+  def get_user_item!(%Scope{} = scope, id) do
     item =
       UserGameItem
       |> where(id: ^id)
-      |> where(user_id: ^user.id)
+      |> where(user_id: ^scope.current_user_id)
+      |> where(deleted: false)
       |> preload(^item_preloads())
       |> preload(:listing)
       |> Repo.one!()
@@ -50,9 +48,24 @@ defmodule Dakka.Inventory do
     group_strings(item)
   end
 
-  def list_user_items(user) do
+  def find_user_item(%Scope{} = scope, id) do
+    query =
+      UserGameItem
+      |> where(id: ^id)
+      |> where(user_id: ^scope.current_user_id)
+      |> where(deleted: false)
+      |> preload(^item_preloads())
+      |> preload(:listing)
+
+    with {:ok, item} <- Repo.find(query) do
+      {:ok, group_strings(item)}
+    end
+  end
+
+  def list_user_items(%Scope{} = scope) do
     UserGameItem
-    |> where(user_id: ^user.id)
+    |> where(deleted: false)
+    |> where(user_id: ^scope.current_user_id)
     |> order_by(asc: :position, desc: :inserted_at)
     |> preload(^item_preloads())
     |> preload(:listing)
@@ -94,7 +107,7 @@ defmodule Dakka.Inventory do
     ]
   end
 
-  def build_user_item(user, item_base) do
+  def build_user_item(%Scope{current_user: user}, item_base) do
     %UserGameItem{user_id: user.id, item_base: item_base, item_base_id: item_base.id}
   end
 
@@ -111,7 +124,7 @@ defmodule Dakka.Inventory do
 
   def user_item_preview(%Changeset{} = changeset), do: Changeset.apply_changes(changeset)
 
-  def create_user_item(user_item, params) do
+  def create_user_item(scope, user_item, params) do
     changeset = change_user_item(user_item, params)
 
     case Repo.insert(changeset) do
@@ -129,7 +142,7 @@ defmodule Dakka.Inventory do
           ])
 
         broadcast(
-          item.user_id,
+          scope,
           %UserItemCreated{user_item: item}
         )
 
@@ -172,16 +185,6 @@ defmodule Dakka.Inventory do
     )
   end
 
-  # def add_mod(changeset, params) do
-  #   changeset
-  #   |> Changeset.cast(wrap_params(params), [])
-  #   |> Changeset.cast_assoc(:explicit_mods)
-  #   |> Changeset.cast_assoc(:implicit_mods)
-  # end
-
-  # defp wrap_params(%{"mod_type" => "implicit"} = params), do: %{"implicit_mods" => [params]}
-  # defp wrap_params(%{"mod_type" => "explicit"} = params), do: %{"explicit_mods" => [params]}
-
   def add_mod(changeset, mod, item_base \\ nil) do
     {type, mods} =
       case mod do
@@ -220,5 +223,37 @@ defmodule Dakka.Inventory do
       value: item_base_mod.min_value,
       value_type: item_base_mod.item_mod.value_type
     }
+  end
+
+  def delete_user_item(%Scope{} = scope, item_id) do
+    item =
+      UserGameItem
+      |> where(id: ^item_id)
+      |> where(user_id: ^scope.current_user_id)
+      |> Repo.one!()
+
+    changeset = UserGameItem.delete(item)
+
+    multi =
+      Multi.new()
+      |> Multi.update(:item, changeset)
+      |> Multi.merge(&Dakka.Market.delete_item_listings_multi(&1.item))
+
+    case Repo.transaction(multi) do
+      {:ok, %{item: item, deleted_listings: {_, listings}}} ->
+        broadcast(scope, %UserItemDeleted{user_item: item})
+
+        for listing <- listings do
+          Dakka.Market.broadcast(
+            [:market, market: scope, listing: listing],
+            %Dakka.Market.Events.ListingDeleted{listing: listing}
+          )
+        end
+
+        {:ok, item}
+
+      {:error, _op, changeset, _changes} ->
+        {:error, changeset}
+    end
   end
 end

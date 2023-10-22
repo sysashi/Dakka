@@ -222,6 +222,14 @@ defmodule DakkaWeb.MarketLive do
 
         {:noreply, socket}
 
+      {:error, :not_found} ->
+        socket =
+          socket
+          |> stream_delete_by_dom_id(:listings, "listings-#{listing_id}")
+          |> put_flash(:error, "Listing no longer exists")
+
+        {:noreply, socket}
+
       {:error, _changeset} ->
         {:noreply, socket}
     end
