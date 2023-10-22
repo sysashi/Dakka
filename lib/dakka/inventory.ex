@@ -216,12 +216,18 @@ defmodule Dakka.Inventory do
   end
 
   defp convert_to_user_item_mod(%ItemBaseMod{} = item_base_mod, label_fun) do
+    value_float =
+      if item_base_mod.item_mod.value_type == :percentage and item_base_mod.min_value do
+        item_base_mod.min_value / 10
+      end
+
     %UserGameItemMod{
       mod_type: item_base_mod.mod_type,
       item_mod_id: item_base_mod.item_mod_id,
       label: label_fun.(item_base_mod.item_mod.strings),
       value: item_base_mod.min_value,
-      value_type: item_base_mod.item_mod.value_type
+      value_type: item_base_mod.item_mod.value_type,
+      value_float: value_float
     }
   end
 
