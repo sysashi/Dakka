@@ -8,6 +8,9 @@ defmodule Dakka.Repo.Migrations.CreateUserGameItems do
       add :quantity, :integer, default: 1, null: false
       add :item_base_id, references(:game_item_bases, on_delete: :restrict), null: false
       add :user_id, references(:users, on_delete: :delete_all), null: false
+      add :deleted, :boolean, default: false, null: false
+
+      timestamps()
     end
 
     create table(:users_game_items_mods) do

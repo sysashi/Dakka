@@ -10,6 +10,7 @@ defmodule Dakka.Inventory.UserGameItem do
   schema "users_game_items" do
     field :quantity, :integer, default: 1
     field :position, :integer
+    field :deleted, :boolean
 
     belongs_to :item_base, ItemBase
     belongs_to :user, User
@@ -19,6 +20,8 @@ defmodule Dakka.Inventory.UserGameItem do
     has_many :explicit_mods, UserGameItemMod, where: [mod_type: :explicit]
 
     has_one :listing, Listing, where: [deleted: false]
+
+    timestamps()
   end
 
   def changeset(item, attrs \\ %{}) do

@@ -53,7 +53,7 @@ defmodule Dakka.Inventory do
   def list_user_items(user) do
     UserGameItem
     |> where(user_id: ^user.id)
-    |> order_by(asc: :position)
+    |> order_by(asc: :position, desc: :inserted_at)
     |> preload(^item_preloads())
     |> preload(:listing)
     |> Repo.all()
