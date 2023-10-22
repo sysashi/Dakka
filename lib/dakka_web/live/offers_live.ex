@@ -102,7 +102,7 @@ defmodule DakkaWeb.OffersLive do
               </.link>
               <span
                 :if={offer.status in [:accepted_by_seller, :active]}
-                phx-click={JS.push("decline-offer", value: %{id: offer.id})}
+                phx-click={JS.push("cancel-offer", value: %{id: offer.id})}
                 class="text-gray-500 italic underline underline-offset-4 hover:cursor-pointer hover:text-gray-400"
               >
                 Cancel offer
@@ -192,6 +192,11 @@ defmodule DakkaWeb.OffersLive do
 
         {:noreply, socket}
 
+      {:error, {:unacceptable_status, status}} ->
+        status = Market.ListingOffer.humanize_status(status)
+        message = "Can't accept offer with status: #{status}"
+        {:noreply, put_flash(socket, :error, message)}
+
       {:error, _reason} ->
         {:noreply, socket}
     end
@@ -199,6 +204,16 @@ defmodule DakkaWeb.OffersLive do
 
   def handle_event("decline-offer", %{"id" => offer_id}, socket) do
     case Market.decline_offer(socket.assigns.scope, offer_id) do
+      {:ok, _offer} ->
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("cancel-offer", %{"id" => offer_id}, socket) do
+    case Market.cancel_offer(socket.assigns.scope, offer_id) do
       {:ok, _offer} ->
         {:noreply, socket}
 

@@ -380,12 +380,15 @@ defmodule Dakka.Market do
     }
   end
 
-  defp preload_item_with_strings(offer) do
+  defp preload_item_with_strings(%ListingOffer{} = offer) do
     offer
-    |> Repo.preload([
-      :user,
-      listing: [user_game_item: {Inventory.user_item_preload_query(), [:user]}]
-    ])
+    |> Repo.preload(
+      [
+        :user,
+        listing: [user_game_item: {Inventory.user_item_preload_query(), [:user]}]
+      ],
+      force: true
+    )
     |> group_strings()
   end
 
@@ -622,6 +625,35 @@ defmodule Dakka.Market do
             market: scope.current_user
           ],
           %OfferDeclined{offer: offer}
+        )
+
+        {:ok, offer}
+      end
+    else
+      {:ok, offer}
+    end
+  end
+
+  def cancel_offer(scope, offer_id) do
+    offer_query =
+      ListingOffer
+      |> where(id: ^offer_id)
+      |> where(user_id: ^scope.current_user_id)
+
+    offer = Repo.one!(offer_query)
+
+    if offer.status in [:active, :accepted_by_seller] do
+      changeset = ListingOffer.change_status(offer, :cancelled_by_buyer)
+
+      with {:ok, offer} <- Repo.update(changeset) do
+        offer = preload_item_with_strings(offer)
+
+        broadcast(
+          [
+            market: scope.current_user,
+            market: offer.listing.user_game_item.user
+          ],
+          %OfferCancelled{offer: offer}
         )
 
         {:ok, offer}
