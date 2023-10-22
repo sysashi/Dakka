@@ -39,6 +39,10 @@ defmodule Dakka.Market.ListingOffer do
       name: :one_active_listing_offer,
       message: "active offer already exists for this listing"
     )
+    |> unique_constraint(:listing,
+      name: :one_accepted_listing_offer,
+      message: "accepted offer already exists for this listing"
+    )
   end
 
   def change_status(offer, status) do

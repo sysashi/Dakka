@@ -52,10 +52,14 @@ defmodule Dakka.Repo.Migrations.CreateMarketListings do
     create index(:market_listings_offers, [:user_id])
     create index(:market_listings_offers, [:listing_id])
 
-    # TODO unique accepted_by_seller
     create unique_index(:market_listings_offers, [:user_id, :listing_id],
              name: :one_active_listing_offer,
              where: "status = 'active'"
+           )
+
+    create unique_index(:market_listings_offers, [:user_id, :listing_id],
+             name: :one_accepted_listing_offer,
+             where: "status = 'accepted_by_seller'"
            )
 
     create constraint(:market_listings_offers, :valid_offer_statuses,
