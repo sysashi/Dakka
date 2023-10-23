@@ -51,14 +51,13 @@ defmodule Dakka.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-
-      # Remove cowboy?
-      # {:plug_cowboy, "~> 2.5"},
-      {:bandit, "~> 1.0"},
-      {:ecto_psql_extras, "~> 0.6"},
       {:ex_cldr_dates_times, "~> 2.0"},
-      {:slugify, "~> 1.3"},
-      {:recase, "~> 0.5"},
+
+      # oban
+      {:oban, "~> 2.16"},
+
+      # web server
+      {:bandit, "~> 1.0"},
 
       # otel
       {:opentelemetry_exporter, "~> 1.4"},
@@ -71,9 +70,15 @@ defmodule Dakka.MixProject do
        subdir: "instrumentation/opentelemetry_phoenix"},
       {:opentelemetry_liveview, "~> 1.0-rc.4"},
       {:opentelemetry_honeycomb_sampler, "~> 0.1.0"},
+      {:opentelemetry_oban, "~> 1.0"},
 
       # sentry
-      {:sentry, "~> 9.1"}
+      {:sentry, "~> 9.1"},
+
+      # extras
+      {:ecto_psql_extras, "~> 0.6"},
+      {:slugify, "~> 1.3"},
+      {:recase, "~> 0.5"}
     ]
   end
 

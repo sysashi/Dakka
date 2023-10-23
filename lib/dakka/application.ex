@@ -15,6 +15,8 @@ defmodule Dakka.Application do
       DakkaWeb.Telemetry,
       # Start the Ecto repository
       Dakka.Repo,
+      # Start Oban
+      {Oban, Application.fetch_env!(:dakka, Oban)},
       # Start the PubSub system
       {Phoenix.PubSub, name: Dakka.PubSub},
       # Start Presence
@@ -45,5 +47,6 @@ defmodule Dakka.Application do
     OpentelemetryEcto.setup([:dakka, :repo])
     OpentelemetryLiveView.setup()
     OpentelemetryPhoenix.setup()
+    OpentelemetryOban.setup()
   end
 end

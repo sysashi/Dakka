@@ -92,4 +92,9 @@ config :opentelemetry,
          }
        }
 
+config :dakka, Oban,
+  repo: Dakka.Repo,
+  plugins: [Oban.Plugins.Pruner],
+  queues: [default: 10]
+
 import_config "#{config_env()}.exs"
