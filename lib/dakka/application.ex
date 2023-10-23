@@ -24,9 +24,10 @@ defmodule Dakka.Application do
       # Start Finch
       {Finch, name: Dakka.Finch},
       # Start the Endpoint (http/https)
-      DakkaWeb.Endpoint
+      DakkaWeb.Endpoint,
       # Start a worker by calling: Dakka.Worker.start_link(arg)
       # {Dakka.Worker, arg}
+      {Task, fn -> Dakka.Workers.DemoListings.start() end}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

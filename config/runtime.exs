@@ -20,6 +20,10 @@ if System.get_env("PHX_SERVER") do
   config :dakka, DakkaWeb.Endpoint, server: true
 end
 
+if System.get_env("DEMO_MODE") do
+  config :dakka, demo_mode: true
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

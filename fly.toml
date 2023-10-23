@@ -17,6 +17,7 @@ swap_size_mb = 512
   PORT = "4000"
   PHX_HOST = "demo.dakka.live"
   DEPLOY_ENV_NAME = "demo"
+  DEMO_MODE="true"
 
 [http_service]
   internal_port = 4000
