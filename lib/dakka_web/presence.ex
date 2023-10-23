@@ -1,6 +1,10 @@
 defmodule DakkaWeb.Presence do
   @pubsub Dakka.PubSub
 
+  alias Dakka.Scope
+  alias Dakka.Accounts.User
+  alias Dakka.Market.ListingOffer
+
   use Phoenix.Presence,
     otp_app: :dakka,
     pubsub_server: @pubsub
@@ -10,18 +14,31 @@ defmodule DakkaWeb.Presence do
     {:ok, %{}}
   end
 
-  def subscribe(offer) do
+  def subscribe(%ListingOffer{} = offer) do
     Phoenix.PubSub.subscribe(@pubsub, topic(offer))
   end
 
-  def track_trade(offer, user) do
+  def subscribe(:market) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(:market))
+  end
+
+  def track_trade(%ListingOffer{} = offer, %User{} = user) do
     track(self(), "proxy:" <> topic(offer), user.id, %{})
   end
 
-  def topic(offer), do: "offer_presence:#{offer.id}"
+  def track(%Scope{current_user: %User{} = user}) do
+    track(self(), "proxy:" <> topic(:market), user.id, %{})
+  end
+
+  def topic(:market), do: "market"
+  def topic(%ListingOffer{} = offer), do: "offer_presence:#{offer.id}"
 
   def list_trade_users(offer) do
     list("proxy:" <> topic(offer))
+  end
+
+  def list_market_users() do
+    list("proxy:" <> topic(:market))
   end
 
   def fetch(_topic, presences) do

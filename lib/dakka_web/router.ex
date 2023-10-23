@@ -78,6 +78,7 @@ defmodule DakkaWeb.Router do
       on_mount: [
         {DakkaWeb.UserAuth, :ensure_authenticated},
         DakkaWeb.Hooks.Scope,
+        DakkaWeb.Hooks.MarketPresence,
         DakkaWeb.Hooks.Nav
       ] do
       live "/users/settings", UserSettingsLive, :edit

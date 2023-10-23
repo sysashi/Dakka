@@ -4,6 +4,7 @@ defmodule DakkaWeb.MarketLive do
   import DakkaWeb.MarketComponents
 
   alias Dakka.Market
+  alias DakkaWeb.Presence
 
   alias Dakka.Market.Events.{
     ListingCreated,
@@ -27,7 +28,7 @@ defmodule DakkaWeb.MarketLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto mb-4 ">
+    <div class="mx-auto mb-4">
       <h4
         class="text-xl text-gray-200 text-right hover:text-gray-300 hover:cursor-pointer p-2 font-bold hover:underline"
         phx-click={
@@ -55,11 +56,32 @@ defmodule DakkaWeb.MarketLive do
       </article>
     </div>
 
-    <section class="flex mx-auto flex-col">
+    <section
+      id="listings"
+      phx-hook="Listings"
+      class="flex mx-auto flex-col"
+      data-show-online={
+        JS.show(
+          transition:
+            {"transition-all transform ease-out duration-300",
+             "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+             "opacity-100 translate-y-0 sm:scale-100"},
+          display: "flex"
+        )
+      }
+      data-hide-online={
+        JS.hide(
+          transition:
+            {"transition-all transform ease-in duration-200",
+             "opacity-100 translate-y-0 sm:scale-100",
+             "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+        )
+      }
+    >
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-8 gap-x-4 auto-rows-max mx-auto text-white flex-1 overflow-auto"
-        phx-update="stream"
         id="market"
+        class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-8 gap-x-4 auto-rows-max text-white flex-1 overflow-auto"
+        phx-update="stream"
         phx-viewport-top={@page > 1 && "prev-page"}
         phx-viewport-bottom={!@end_of_timeline? && "next-page"}
         phx-page-loading
@@ -76,12 +98,12 @@ defmodule DakkaWeb.MarketLive do
           ]}
         >
           <.listing listing={listing} show_icon={false}>
-            <:actions :if={@scope.current_user_id}>
+            <:actions>
               <div
+                :if={@scope.current_user_id && listing.status == :active}
                 class={[
                   "flex items-center gap-2 mt-2 group-hover:bg-blue-700"
                 ]}
-                if={listing.status == :active}
               >
                 <%= case listing.offers do %>
                   <% [offer] -> %>
@@ -123,6 +145,20 @@ defmodule DakkaWeb.MarketLive do
                     </.link>
                 <% end %>
               </div>
+              <span
+                :if={@online_sellers[listing.user_game_item.user_id]}
+                class={[
+                  "relative flex items-center mt-1",
+                  "listing-seller-status-#{listing.user_game_item.user_id}"
+                ]}
+              >
+                <span class="text-xs text-zinc-400"> Seller Online </span>
+                <span class="relative flex h-2 w-2 ml-1">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75">
+                  </span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+              </span>
             </:actions>
           </.listing>
         </div>
@@ -151,6 +187,7 @@ defmodule DakkaWeb.MarketLive do
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Market.subscribe()
+      Presence.subscribe(:market)
 
       if current_user = socket.assigns.scope.current_user do
         Market.subscribe({:market, current_user})
@@ -159,6 +196,7 @@ defmodule DakkaWeb.MarketLive do
 
     socket =
       socket
+      |> assign_online_sellers()
       |> stream(:listings, [])
       |> assign(page: 1, per_page: 20)
       |> paginate_listings(1)
@@ -233,6 +271,10 @@ defmodule DakkaWeb.MarketLive do
       {:error, _changeset} ->
         {:noreply, socket}
     end
+  end
+
+  def handle_info({Presence, presence}, socket) do
+    {:noreply, handle_presence(socket, presence)}
   end
 
   def handle_info({:search, filters}, socket) do
@@ -335,4 +377,35 @@ defmodule DakkaWeb.MarketLive do
   defp event_message(OfferAccepted), do: "Your offer has been accepted"
   defp event_message(OfferDeclined), do: "Your offer has been declined"
   defp event_message(_), do: nil
+
+  ## Market Presence
+
+  defp handle_presence(socket, {:user_joined, presence}) do
+    %{user: user} = presence
+
+    socket
+    |> update(:online_sellers, &Map.put_new(&1, user.id, true))
+    |> push_event("show-seller-online", %{class: "listing-seller-status-#{user.id}"})
+  end
+
+  defp handle_presence(socket, {:user_left, presence}) do
+    %{user: left_user} = presence
+
+    if presence.metas == [] do
+      socket
+      |> update(:online_sellers, &Map.delete(&1, left_user.id))
+      |> push_event("hide-seller-online", %{class: "listing-seller-status-#{left_user.id}"})
+    else
+      socket
+    end
+  end
+
+  defp assign_online_sellers(socket) do
+    ids =
+      for {_, %{user: user}} <- DakkaWeb.Presence.list_market_users(), into: %{} do
+        {user.id, true}
+      end
+
+    assign(socket, :online_sellers, ids)
+  end
 end
