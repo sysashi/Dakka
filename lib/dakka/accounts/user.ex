@@ -120,6 +120,7 @@ defmodule Dakka.Accounts.User do
   def email_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email])
+    |> validate_required(:email)
     |> validate_email(opts)
     |> case do
       %{changes: %{email: _}} = changeset -> changeset

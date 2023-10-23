@@ -23,7 +23,6 @@ defmodule Dakka.Market do
   alias Dakka.Market.Events.{
     ListingCreated,
     ListingDeleted,
-    ListingExpired,
     ListingSold,
     ListingUpdated,
     OfferAccepted,
@@ -797,45 +796,31 @@ defmodule Dakka.Market do
     end
   end
 
-  defp comp(named_binding \\ nil, field, op, value)
+  # defp comp(named_binding, field, _op, value) do
+  #   if named_binding do
+  #     dynamic([{^named_binding, l}], field(l, ^field) < ^value)
+  #   else
+  #     dynamic([q], field(q, ^field) < ^value)
+  #   end
+  # end
 
   defp comp(named_binding, field, :lt, value) do
-    if named_binding do
-      dynamic([{^named_binding, l}], field(l, ^field) < ^value)
-    else
-      dynamic([q], field(q, ^field) < ^value)
-    end
+    dynamic([{^named_binding, l}], field(l, ^field) < ^value)
   end
 
   defp comp(named_binding, field, :lt_or_eq, value) do
-    if named_binding do
-      dynamic([{^named_binding, l}], field(l, ^field) <= ^value)
-    else
-      dynamic([q], field(q, ^field) <= ^value)
-    end
+    dynamic([{^named_binding, l}], field(l, ^field) <= ^value)
   end
 
   defp comp(named_binding, field, :gt, value) do
-    if named_binding do
-      dynamic([{^named_binding, l}], field(l, ^field) > ^value)
-    else
-      dynamic([q], field(q, ^field) > ^value)
-    end
+    dynamic([{^named_binding, l}], field(l, ^field) > ^value)
   end
 
   defp comp(named_binding, field, :gt_or_eq, value) do
-    if named_binding do
-      dynamic([{^named_binding, l}], field(l, ^field) >= ^value)
-    else
-      dynamic([q], field(q, ^field) >= ^value)
-    end
+    dynamic([{^named_binding, l}], field(l, ^field) >= ^value)
   end
 
   defp comp(named_binding, field, :eq, value) do
-    if named_binding do
-      dynamic([{^named_binding, l}], field(l, ^field) == ^value)
-    else
-      dynamic([q], field(q, ^field) == ^value)
-    end
+    dynamic([{^named_binding, l}], field(l, ^field) == ^value)
   end
 end

@@ -1,5 +1,5 @@
 defmodule DakkaWeb.UserSessionControllerTest do
-  use DakkaWeb.ConnCase, async: true
+  use DakkaWeb.ConnCase
 
   import Dakka.AccountsFixtures
 
@@ -11,16 +11,16 @@ defmodule DakkaWeb.UserSessionControllerTest do
     test "logs the user in", %{conn: conn, user: user} do
       conn =
         post(conn, ~p"/users/log_in", %{
-          "user" => %{"email" => user.email, "password" => valid_user_password()}
+          "user" => %{"username" => user.username, "password" => valid_user_password()}
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/market"
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, ~p"/")
+      conn = get(conn, ~p"/market")
       response = html_response(conn, 200)
-      assert response =~ user.email
+      assert response =~ user.username
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/users/log_out"
     end
@@ -29,14 +29,14 @@ defmodule DakkaWeb.UserSessionControllerTest do
       conn =
         post(conn, ~p"/users/log_in", %{
           "user" => %{
-            "email" => user.email,
+            "username" => user.username,
             "password" => valid_user_password(),
             "remember_me" => "true"
           }
         })
 
       assert conn.resp_cookies["_dakka_web_user_remember_me"]
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/market"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
@@ -45,7 +45,7 @@ defmodule DakkaWeb.UserSessionControllerTest do
         |> init_test_session(user_return_to: "/foo/bar")
         |> post(~p"/users/log_in", %{
           "user" => %{
-            "email" => user.email,
+            "username" => user.username,
             "password" => valid_user_password()
           }
         })
@@ -60,12 +60,12 @@ defmodule DakkaWeb.UserSessionControllerTest do
         |> post(~p"/users/log_in", %{
           "_action" => "registered",
           "user" => %{
-            "email" => user.email,
+            "username" => user.username,
             "password" => valid_user_password()
           }
         })
 
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/market"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Account created successfully"
     end
 
@@ -75,7 +75,7 @@ defmodule DakkaWeb.UserSessionControllerTest do
         |> post(~p"/users/log_in", %{
           "_action" => "password_updated",
           "user" => %{
-            "email" => user.email,
+            "username" => user.username,
             "password" => valid_user_password()
           }
         })
@@ -87,10 +87,10 @@ defmodule DakkaWeb.UserSessionControllerTest do
     test "redirects to login page with invalid credentials", %{conn: conn} do
       conn =
         post(conn, ~p"/users/log_in", %{
-          "user" => %{"email" => "invalid@email.com", "password" => "invalid_password"}
+          "user" => %{"username" => "invalid-username", "password" => "invalid_password"}
         })
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid username or password"
       assert redirected_to(conn) == ~p"/users/log_in"
     end
   end

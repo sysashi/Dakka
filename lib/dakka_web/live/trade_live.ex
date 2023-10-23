@@ -83,34 +83,12 @@ defmodule DakkaWeb.TradeLive do
           DakkaWeb.Presence.track_trade(offer, socket.assigns.current_user)
         end
 
-        message1 = %{
-          id: Ecto.UUID.generate(),
-          from: socket.assigns.current_user,
-          body: "hehe",
-          type: :user_message
-        }
-
-        message2 = %{
-          id: Ecto.UUID.generate(),
-          from: :system,
-          body: "very long lkasdjf asldf;lk ajsdfk jasdkfj ;lkasdfj laskdjflk jsa;df; lasdf",
-          type: :system
-        }
-
-        message3 = %{
-          id: Ecto.UUID.generate(),
-          from: nil,
-          body: "ALRIGHT GOT IT",
-          type: :user_message
-        }
-
         socket =
           socket
           |> assign(:offer, offer)
           |> assign(:seller, offer.listing.user_game_item.user)
           |> assign(:buyer, offer.user)
           |> assign(:message_form, message_form())
-          # |> stream(:messages, initial_messages(offer) ++ [message1, message2, message3])
           |> stream(:messages, initial_messages(offer))
           |> assign_presences()
 

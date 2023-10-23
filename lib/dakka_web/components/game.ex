@@ -105,7 +105,7 @@ defmodule DakkaWeb.GameComponents do
       ]
     }>
       <header class={"mb-2 flex justify-center border-b text-center #{rarity_colors(@item_base.item_rarity.slug)}"}>
-        <h3 class="text-xl py-3 font-semibold"><%= string(@item_base, :name, @lang) %></h3>
+        <h3 class="text-xl px-4 py-3 font-semibold"><%= string(@item_base, :name, @lang) %></h3>
       </header>
 
       <div :if={@show_icon} class="flex justify-center">

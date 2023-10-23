@@ -12,7 +12,13 @@
     <meta property="og:site_name" content="Dakka" />
     <meta property="og:description" content="Unofficial experimental Dark and Darker market" />
     <meta property="og:type" content="website" />
-
+    <link
+      id="favicon"
+      rel="shortcut icon"
+      href={~p"/favicon-32.png"}
+      sizes="16x16 32x32 48x48"
+      type="image/png"
+    />
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
@@ -21,9 +27,10 @@
     <%= @inner_content %>
     <footer class="px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto">
-        <div class="flex items-center justify-between border-t border-zinc-700 py-4 text-sm text-zinc-600">
-          Unofficial & experimental DnD Market.
-          Not affiliated with IRONMACE Co., Ltd.
+        <div class="flex items-center justify-between border-t border-zinc-700 py-4 px-4 text-sm text-zinc-600 text-center">
+          <span>Unofficial & experimental DnD Market.
+            Not affiliated with IRONMACE Co., Ltd.</span>
+          <span>2023</span>
         </div>
       </div>
     </footer>

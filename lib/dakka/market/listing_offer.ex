@@ -53,6 +53,16 @@ defmodule Dakka.Market.ListingOffer do
     Enum.map(@statuses, &{humanize_status(&1), &1})
   end
 
+  def relations(offer, user) do
+    buyer? = buyer?(offer, user)
+    seller? = seller?(offer, user)
+
+    Enum.filter([buyer? && :buyer, seller? && :seller], & &1)
+  end
+
+  defp buyer?(offer, user), do: offer.user_id == user.id
+  defp seller?(offer, user), do: offer.listing.user_game_item.user.id == user.id
+
   def humanize_status(:active), do: "Active"
   def humanize_status(:accepted_by_seller), do: "Accepted"
   def humanize_status(:declined_by_seller), do: "Declined"

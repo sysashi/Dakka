@@ -98,7 +98,7 @@ defmodule DakkaWeb.UserSettingsLiveTest do
         form(lv, "#password_form", %{
           "current_password" => password,
           "user" => %{
-            "email" => user.email,
+            "username" => user.username,
             "password" => new_password,
             "password_confirmation" => new_password
           }
@@ -127,13 +127,13 @@ defmodule DakkaWeb.UserSettingsLiveTest do
         |> render_change(%{
           "current_password" => "invalid",
           "user" => %{
-            "password" => "too short",
+            "password" => "short",
             "password_confirmation" => "does not match"
           }
         })
 
       assert result =~ "Change Password"
-      assert result =~ "should be at least 12 character(s)"
+      assert result =~ "should be at least 8 character(s)"
       assert result =~ "does not match password"
     end
 
@@ -145,14 +145,14 @@ defmodule DakkaWeb.UserSettingsLiveTest do
         |> form("#password_form", %{
           "current_password" => "invalid",
           "user" => %{
-            "password" => "too short",
+            "password" => "short",
             "password_confirmation" => "does not match"
           }
         })
         |> render_submit()
 
       assert result =~ "Change Password"
-      assert result =~ "should be at least 12 character(s)"
+      assert result =~ "should be at least 8 character(s)"
       assert result =~ "does not match password"
       assert result =~ "is not valid"
     end

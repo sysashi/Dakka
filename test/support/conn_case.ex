@@ -33,6 +33,17 @@ defmodule DakkaWeb.ConnCase do
 
   setup tags do
     Dakka.DataCase.setup_sandbox(tags)
+
+    # wait for presence tasks termination
+    on_exit(fn ->
+      Process.sleep(10)
+
+      for pid <- DakkaWeb.Presence.fetchers_pids() do
+        ref = Process.monitor(pid)
+        assert_receive {:DOWN, ^ref, _, _, _}, 1000
+      end
+    end)
+
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 

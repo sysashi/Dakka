@@ -28,7 +28,7 @@ defmodule DakkaWeb.UserSessionController do
     else
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
       conn
-      |> put_flash(:error, "Invalid email or password")
+      |> put_flash(:error, "Invalid username or password")
       |> put_flash(:username, username)
       |> redirect(to: ~p"/users/log_in")
     end
