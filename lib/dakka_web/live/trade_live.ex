@@ -45,7 +45,12 @@ defmodule DakkaWeb.TradeLive do
           </div>
         </section>
         <section class="bg-black px-2 py-4 rounded-b-md border-t border-indigo-900">
-          <.form for={@message_form} phx-submit="send-user-message">
+          <.form
+            for={@message_form}
+            phx-submit="send-user-message"
+            phx-change="validate-user-message"
+            id="user-message-form"
+          >
             <div class="flex items-center w-full justify-center space-x-2">
               <.input
                 autocomplete="off"
@@ -88,7 +93,7 @@ defmodule DakkaWeb.TradeLive do
           |> assign(:offer, offer)
           |> assign(:seller, offer.listing.user_game_item.user)
           |> assign(:buyer, offer.user)
-          |> assign(:message_form, message_form())
+          |> assign_message_form()
           |> stream(:messages, initial_messages(offer))
           |> assign_presences()
 
@@ -99,13 +104,23 @@ defmodule DakkaWeb.TradeLive do
     end
   end
 
+  def handle_event("validate-user-message", %{"message" => %{"body" => body}}, socket) do
+    {:noreply, assign_message_form(socket, body)}
+  end
+
   def handle_event("send-user-message", %{"message" => %{"body" => body}}, socket) do
     body = String.trim(body)
 
     if body != "" do
       message = build_user_message(socket.assigns.current_user, body)
       Market.send_trade_message(socket.assigns.offer, message)
-      {:noreply, stream_insert(socket, :messages, message, at: -1)}
+
+      socket =
+        socket
+        |> assign_message_form()
+        |> stream_insert(:messages, message, at: -1)
+
+      {:noreply, socket}
     else
       {:noreply, socket}
     end
@@ -138,8 +153,12 @@ defmodule DakkaWeb.TradeLive do
     end
   end
 
-  def message_form() do
-    to_form(%{"body" => ""}, as: :message)
+  def assign_message_form(socket, body \\ "") do
+    assign(socket, :message_form, to_form(%{"body" => body}, as: :message))
+  end
+
+  def message_form(body \\ "") do
+    to_form(%{"body" => body}, as: :message)
   end
 
   defp message_aligment(_, :system), do: "mx-auto"
