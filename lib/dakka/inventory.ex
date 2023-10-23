@@ -262,4 +262,94 @@ defmodule Dakka.Inventory do
         {:error, changeset}
     end
   end
+
+  ## Utils
+
+  def generate_random_item() do
+    item_mod_ids =
+      Game.ItemMod
+      |> where([im], im.value_type in [:integer, :percentage])
+      |> select([im], im.id)
+      |> Repo.all()
+
+    item_base_count = Repo.aggregate(Game.ItemBase, :count, :id)
+    random_row = Enum.random(0..(item_base_count - 1))
+
+    item_base =
+      Game.ItemBase
+      |> offset(^random_row)
+      |> preload([:item_rarity, implicit_mods: :item_mod])
+      |> limit(1)
+      |> Repo.one!()
+
+    mods_limit = @max_mods_by_rarity[item_base.item_rarity.slug]
+    mods_count = Enum.random(0..mods_limit)
+
+    random_mods =
+      Game.ItemMod
+      |> where([im], im.value_type in [:integer, :percentage])
+      |> where([im], im.id in ^Enum.take_random(item_mod_ids, mods_count))
+      |> Repo.all()
+
+    changeset =
+      %UserGameItem{}
+      |> Changeset.change()
+      |> Changeset.put_assoc(:item_base, item_base)
+      |> Changeset.put_assoc(
+        :implicit_mods,
+        Enum.map(item_base.implicit_mods, &to_random_user_mod(&1, :implicit))
+      )
+
+    if "armor" in item_base.labels or "weapon" in item_base.labels do
+      Changeset.put_assoc(
+        changeset,
+        :explicit_mods,
+        Enum.map(random_mods, &to_random_user_mod(&1, :explicit))
+      )
+    else
+      changeset
+    end
+  end
+
+  defp to_random_user_mod(item_base_mod_or_item_mod, mod_type) do
+    {mod_id, value, value_type} =
+      case item_base_mod_or_item_mod do
+        %ItemBaseMod{} = base_mod ->
+          %{min_value: min, max_value: max} = base_mod
+
+          value =
+            cond do
+              min && max ->
+                Enum.random(min..max)
+
+              min || max ->
+                min || max
+
+              true ->
+                random_mod_value(base_mod.item_mod.value_type)
+            end
+
+          {base_mod.item_mod_id, value, base_mod.item_mod.value_type}
+
+        %Game.ItemMod{} = item_mod ->
+          {item_mod.id, random_mod_value(item_mod.value_type), item_mod.value_type}
+      end
+
+    %UserGameItemMod{
+      mod_type: mod_type,
+      item_mod_id: mod_id,
+      value: value,
+      value_type: value_type
+    }
+  end
+
+  defp random_mod_value(type) do
+    base = Enum.random(1..5)
+
+    if type == :percentage do
+      base * 10
+    else
+      base
+    end
+  end
 end

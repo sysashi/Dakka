@@ -180,7 +180,9 @@ defmodule DakkaWeb.GameComponents do
     ~H"""
     <div class={"flex justify-between px-2 #{@color}"}>
       <span class="font-bold">-</span>
-      <span><%= "#{string(@mod, :name, @lang)} #{min_max_or_value(@mod, signed: @signed)}" %></span>
+      <span class="text-center">
+        <%= "#{string(@mod, :name, @lang)} #{min_max_or_value(@mod, signed: @signed)}" %>
+      </span>
       <span class="font-bold">-</span>
     </div>
     """
@@ -306,6 +308,8 @@ defmodule DakkaWeb.GameComponents do
 
     if opts[:signed], do: "#{sign(int_val)}#{val}%", else: "#{val}%"
   end
+
+  defp format_value(val, :predefined_value, _opts), do: "#{val}"
 
   defp sign(num) when is_number(num) and num > 0, do: "+"
   defp sign(num) when is_number(num) and num < 0, do: "-"

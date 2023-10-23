@@ -94,7 +94,7 @@ defmodule DakkaWeb.MarketLive do
           :for={{id, listing} <- @streams.listings}
           id={id}
           class={[
-            "max-w-xs mx-auto border-zinc-500/10"
+            "max-w-xs w-full mx-auto border-zinc-500/10"
           ]}
         >
           <.listing listing={listing} show_icon={false}>
@@ -198,6 +198,7 @@ defmodule DakkaWeb.MarketLive do
       socket
       |> assign_online_sellers()
       |> stream(:listings, [])
+      |> assign(:filters, [])
       |> assign(page: 1, per_page: 20)
       |> paginate_listings(1)
 
@@ -278,14 +279,20 @@ defmodule DakkaWeb.MarketLive do
   end
 
   def handle_info({:search, filters}, socket) do
-    socket = stream(socket, :listings, [], reset: true)
-    {:noreply, paginate_listings(socket, 1, filters)}
+    socket =
+      socket
+      |> assign(:filters, filters)
+      |> stream(:listings, [], reset: true)
+
+    {:noreply, paginate_listings(socket, 1)}
   end
 
   def handle_info({Market, %ListingCreated{listing: listing}}, socket) do
+    %{per_page: limit} = socket.assigns
+
     socket =
       socket
-      |> stream_insert(:listings, listing, at: 0)
+      |> stream_insert(:listings, listing, at: 0, limit: limit)
       |> push_event("highlight", %{id: "listings-#{listing.id}"})
 
     {:noreply, socket}
@@ -330,8 +337,8 @@ defmodule DakkaWeb.MarketLive do
     {:noreply, socket}
   end
 
-  defp paginate_listings(socket, new_page, filters \\ []) do
-    %{per_page: per_page, page: cur_page} = socket.assigns
+  defp paginate_listings(socket, new_page) do
+    %{per_page: per_page, page: cur_page, filters: filters} = socket.assigns
     offset = (new_page - 1) * per_page
 
     listings =

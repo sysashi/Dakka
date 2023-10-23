@@ -63,7 +63,15 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
             />
           </section>
         </article>
-        <div class="flex justify-end px-4 pb-4">
+        <div class="flex justify-end px-4 pb-4 gap-4">
+          <button
+            class="italic text-red-500 text-sm hover:text-red-400 flex items-center group"
+            type="reset"
+            name="reset"
+          >
+            <.icon name="hero-x-mark" class="w-4 h-4 text-red-500 group-hover:text-red-400 mt-[1px]" />
+            Reset
+          </button>
           <.button type="submit" style={:extra}>Search</.button>
         </div>
       </.form>
@@ -85,6 +93,19 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
   end
 
   @impl true
+  def handle_event("validate-item-filters", %{"_target" => ["reset"]}, socket) do
+    send(self(), {:search, []})
+
+    changeset = ItemFilters.change(%ItemFilters{}, %{})
+
+    socket =
+      socket
+      |> assign(:changeset, changeset)
+      |> assign_form(changeset)
+
+    {:noreply, assign_form(socket, changeset)}
+  end
+
   def handle_event("validate-item-filters", %{"item_filters" => filters}, socket) do
     changeset =
       ItemFilters.change(%ItemFilters{}, filters)

@@ -131,6 +131,13 @@ defmodule Dakka.Market do
   end
 
   def search_listings(scope, opts) do
+    scope
+    |> search_listings_query(opts)
+    |> Repo.all()
+    |> Enum.map(&%{&1 | user_game_item: Inventory.group_strings(&1.user_game_item)})
+  end
+
+  def search_listings_query(scope, opts) do
     limit = Keyword.get(opts, :limit, 20)
     offset = Keyword.get(opts, :offset, 0)
     filters = Keyword.get(opts, :filters, [])
@@ -154,8 +161,6 @@ defmodule Dakka.Market do
     |> preload(^preload)
     |> limit(^limit)
     |> offset(^offset)
-    |> Repo.all()
-    |> Enum.map(&%{&1 | user_game_item: Inventory.group_strings(&1.user_game_item)})
   end
 
   def build_listing(user_item) do
@@ -822,5 +827,39 @@ defmodule Dakka.Market do
 
   defp comp(named_binding, field, :eq, value) do
     dynamic([{^named_binding, l}], field(l, ^field) == ^value)
+  end
+
+  ## Utils
+
+  def generate_random_listing(user) do
+    item_changeset =
+      Inventory.generate_random_item()
+      |> Ecto.Changeset.put_assoc(:user, user)
+
+    Repo.transaction(fn ->
+      user_item = Repo.insert!(item_changeset)
+      listing = build_listing(user_item)
+
+      open_for_offers = Enum.random([true, false])
+      random_gold = Enum.random(100..5000)
+      random_keys = Enum.random(1..30)
+
+      listing_params =
+        if open_for_offers do
+          [
+            Enum.random([%{}, %{price_gold: random_gold}]),
+            Enum.random([%{}, %{price_golden_keys: random_keys}])
+          ]
+          |> Enum.reduce(%{open_for_offers: true}, &Map.merge(&2, &1))
+        else
+          fields = Enum.random(1..2)
+
+          [%{price_gold: random_gold}, %{price_golden_keys: random_keys}]
+          |> Enum.take_random(fields)
+          |> Enum.reduce(%{open_for_offers: false}, &Map.merge(&2, &1))
+        end
+
+      create_listing(listing, listing_params)
+    end)
   end
 end

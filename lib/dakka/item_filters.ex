@@ -6,6 +6,8 @@ defmodule Dakka.ItemFilters do
 
   @primary_key false
 
+  # ~w(junk poor common uncommon rare epic legendary unique)
+
   embedded_schema do
     field :item_base, :string
     field :item_base_slug, :string
