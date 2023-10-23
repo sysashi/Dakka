@@ -49,7 +49,7 @@ defmodule DakkaWeb.MarketLive do
       </h4>
 
       <article
-        class="bg-zinc-800 border border-zinc-700 transition-all origin-top hidden"
+        class="bg-zinc-800 border border-zinc-700 transition-all origin-top hidden overflow-hidden"
         id="filters-form"
       >
         <.live_component module={DakkaWeb.MarketLive.ListingFiltersFormComponent} id="filters" />
