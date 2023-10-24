@@ -3,11 +3,11 @@
     <div class="flex items-center justify-between border-b border-zinc-700 py-4">
       <.link
         navigate={if @current_user, do: ~p"/market", else: "/"}
-        class="inline-flex flex-1 justify-start px-4 group items-center text-white hover:text-zinc-200"
+        class="inline-flex flex-1 justify-start px-4 group items-center text-zinc-100 hover:text-white"
       >
-        <.logo />
-        <h3 class="text-4xl">Dakka</h3>
-        <span class="px-1 py-[1px] bg-red-700 mt-2 ml-1 text-xs rounded-md border-red-600 border font-semibold -skew-y-6">
+        <.coins class="w-16 h-16 mr-1 group-hover:brightness-110" />
+        <h3 class="text-4xl text-zinc-100 group-hover:text-white">Dakka</h3>
+        <span class="px-1 py-[1px] bg-red-700 mt-2 ml-1 text-xs rounded-md border-red-600 border font-semibold -skew-y-6 group-hover:bg-red-600">
           Alpha
         </span>
       </.link>

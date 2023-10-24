@@ -131,7 +131,7 @@ defmodule DakkaWeb.MarketLive do
                       style={:secondary}
                       phx-click={JS.push("create-offer", value: %{id: listing.id})}
                     >
-                      <.icon name="hero-circle-stack" class="text-yellow-400 mr-1 h-5 w-5" /> Buy
+                      <.coins class="h-5 w-5 mr-1" /> Buy
                     </.button>
                     <.link
                       :if={listing.open_for_offers}
@@ -141,7 +141,7 @@ defmodule DakkaWeb.MarketLive do
                         "hover:bg-green-900 text-zinc-100 transition-colors duration-100"
                       ]}
                     >
-                      <.icon name="hero-swatch" class="text-blue-400 mr-1 h-5 w-5" /> Custom Offer
+                      <.icon name="hero-scale" class="text-blue-400 mr-1 h-5 w-5" /> Custom Offer
                     </.link>
                 <% end %>
               </div>
