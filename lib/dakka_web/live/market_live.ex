@@ -194,11 +194,20 @@ defmodule DakkaWeb.MarketLive do
       end
     end
 
+    base_filters =
+      case Dakka.ItemFilters.base_filters() do
+        {:ok, filters} ->
+          filters
+
+        _ ->
+          []
+      end
+
     socket =
       socket
       |> assign_online_sellers()
       |> stream(:listings, [])
-      |> assign(:filters, [])
+      |> assign(:filters, base_filters)
       |> assign(page: 1, per_page: 20)
       |> paginate_listings(1)
 

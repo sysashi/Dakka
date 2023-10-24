@@ -28,6 +28,10 @@ defmodule Dakka.ItemFilters do
     embeds_many :properties, PropMod, on_replace: :delete
   end
 
+  def base_filters() do
+    to_filters(build())
+  end
+
   def build(attrs \\ %{}) do
     changeset(%__MODULE__{price: %__MODULE__.Price{}}, attrs)
   end
