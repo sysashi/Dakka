@@ -86,7 +86,7 @@ defmodule DakkaWeb.MarketLive do
         <.icon name="hero-arrow-up" class="h-8 w-8" />
         <span class="text-sm inline-flex">To the start</span>
       </div>
-      <div class="sticky h-24 top-0 z-40" id="notification-bar"></div>
+      <div :if={@page > 1} class="sticky h-24 top-0 z-40" id="notification-bar"></div>
       <div
         id="market"
         class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-8 xl:gap-x-8 auto-rows-max text-white flex-1 overflow-auto"

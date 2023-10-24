@@ -72,7 +72,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
             <.icon name="hero-x-mark" class="w-4 h-4 text-red-500 group-hover:text-red-400 mt-[1px]" />
             Reset
           </button>
-          <.button type="submit" style={:extra}>Search</.button>
+          <.button type="submit" style={:primary}>Search</.button>
         </div>
       </.form>
     </div>
@@ -94,7 +94,13 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
 
   @impl true
   def handle_event("validate-item-filters", %{"_target" => ["reset"]}, socket) do
-    send(self(), {:search, []})
+    case Dakka.ItemFilters.base_filters() do
+      {:ok, filters} ->
+        send(self(), {:search, filters})
+
+      _ ->
+        send(self(), {:search, []})
+    end
 
     changeset = ItemFilters.change(%ItemFilters{}, %{})
 
