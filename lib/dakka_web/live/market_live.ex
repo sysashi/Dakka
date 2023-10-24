@@ -28,7 +28,7 @@ defmodule DakkaWeb.MarketLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto mb-4">
+    <div class="mx-auto mb-8">
       <h4
         class="text-xl text-gray-200 text-right hover:text-gray-300 hover:cursor-pointer p-2 font-bold hover:underline"
         phx-click={
@@ -41,15 +41,15 @@ defmodule DakkaWeb.MarketLive do
         }
       >
         <span class="filter-toggle">
-          Show Filters <.icon name="hero-arrow-down" class="mr-1 h-4" />
+          Show Filters <.icon name="hero-arrow-down" class="h-4" />
         </span>
         <span class="filter-toggle hidden">
-          Hide Filters <.icon name="hero-arrow-up" class="mr-1 h-4 w-4" />
+          Hide Filters <.icon name="hero-arrow-up" class="h-4 w-4" />
         </span>
       </h4>
 
       <article
-        class="bg-zinc-800 border border-zinc-700 transition-all origin-top hidden overflow-hidden"
+        class="bg-zinc-800 border border-zinc-700 transition-all origin-top  overflow-hidden"
         id="filters-form"
       >
         <.live_component module={DakkaWeb.MarketLive.ListingFiltersFormComponent} id="filters" />
@@ -86,9 +86,10 @@ defmodule DakkaWeb.MarketLive do
         <.icon name="hero-arrow-up" class="h-8 w-8" />
         <span class="text-sm inline-flex">To the start</span>
       </div>
+      <div class="sticky h-24 top-0 z-40" id="notification-bar"></div>
       <div
         id="market"
-        class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-8 gap-x-4 auto-rows-max text-white flex-1 overflow-auto"
+        class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-8 xl:gap-x-8 auto-rows-max text-white flex-1 overflow-auto"
         phx-update="stream"
         phx-viewport-top={@page > 1 && "prev-page"}
         phx-viewport-bottom={!@end_of_timeline? && "next-page"}
@@ -319,12 +320,17 @@ defmodule DakkaWeb.MarketLive do
   end
 
   def handle_info({Market, %ListingCreated{listing: listing}}, socket) do
-    %{per_page: limit} = socket.assigns
+    %{per_page: limit, page: cur_page} = socket.assigns
 
     socket =
-      socket
-      |> stream_insert(:listings, listing, at: 0, limit: limit)
-      |> push_event("highlight", %{id: "listings-#{listing.id}"})
+      if cur_page == 1 do
+        socket
+        |> stream_insert(:listings, listing, at: 0, limit: limit)
+        |> push_event("highlight", %{id: "listings-#{listing.id}"})
+      else
+        socket
+        |> push_event("highlight", %{id: "notification-bar"})
+      end
 
     {:noreply, socket}
   end
