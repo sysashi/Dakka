@@ -4,15 +4,6 @@ defmodule DakkaWeb.UserRegistrationLiveTest do
   import Phoenix.LiveViewTest
   import Dakka.AccountsFixtures
 
-  setup do
-    on_exit(fn ->
-      for pid <- DakkaWeb.Presence.fetchers_pids() do
-        ref = Process.monitor(pid)
-        assert_receive {:DOWN, ^ref, _, _, _}, 1000
-      end
-    end)
-  end
-
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
