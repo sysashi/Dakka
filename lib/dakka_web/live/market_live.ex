@@ -34,26 +34,25 @@ defmodule DakkaWeb.MarketLive do
         phx-click={
           JS.toggle(to: ".filter-toggle")
           |> JS.toggle(
-            to: "#filters-form",
-            in: {"duration-150", "scale-y-0 max-h-0", "scale-y-100 max-h-[500px]"},
-            out: {"duration-150", "scale-y-100 max-h-[500px]", "scale-y-0 max-h-0"}
+            to: "#filters-form-wrapper",
+            in: {"duration-150", "scale-y-0 max-h-0", "scale-y-100 max-h-[1000px]"},
+            out: {"duration-150", "scale-y-100 max-h-[1000px]", "scale-y-0 max-h-0"}
           )
         }
       >
         <span class="filter-toggle">
-          Show Filters <.icon name="hero-arrow-down" class="h-4" />
+          Show Filters <.icon name="hero-arrow-down" class="h-4 w-4" />
         </span>
         <span class="filter-toggle hidden">
           Hide Filters <.icon name="hero-arrow-up" class="h-4 w-4" />
         </span>
       </h4>
 
-      <article
-        class="bg-zinc-800 border border-zinc-700 transition-all origin-top  overflow-hidden"
-        id="filters-form"
-      >
-        <.live_component module={DakkaWeb.MarketLive.ListingFiltersFormComponent} id="filters" />
-      </article>
+      <div class="h-full origin-top" id="filters-form-wrapper">
+        <article class="bg-zinc-800 border border-zinc-700">
+          <.live_component module={DakkaWeb.MarketLive.ListingFiltersFormComponent} id="filters" />
+        </article>
+      </div>
     </div>
 
     <section
