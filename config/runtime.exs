@@ -24,6 +24,10 @@ if System.get_env("DEMO_MODE") do
   config :dakka, demo_mode: true
 end
 
+if app_name = System.get_env("FLY_APP_NAME") do
+  config :dakka, :dns_cluster_query, "#{app_name}.internal"
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

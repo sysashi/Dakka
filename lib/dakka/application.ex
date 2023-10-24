@@ -17,6 +17,8 @@ defmodule Dakka.Application do
       Dakka.Repo,
       # Start Oban
       {Oban, Application.fetch_env!(:dakka, Oban)},
+      # Simple DNS cluster
+      {DNSCluster, query: dns_cluster_query()},
       # Start the PubSub system
       {Phoenix.PubSub, name: Dakka.PubSub},
       # Start Presence
@@ -49,5 +51,9 @@ defmodule Dakka.Application do
     OpentelemetryLiveView.setup()
     OpentelemetryPhoenix.setup()
     OpentelemetryOban.setup()
+  end
+
+  defp dns_cluster_query() do
+    Application.get_env(:dakka, :dns_cluster_query, nil) || :ignore
   end
 end
