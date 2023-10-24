@@ -71,6 +71,10 @@ window.addEventListener(`phx:highlight`, (e) => {
   }
 })
 
+window.addEventListener("phx:scroll-to-top", (e) => {
+  window.scrollTo(0, 0)
+})
+
 document.querySelectorAll("input").forEach((input) => {
   input.addEventListener("clear-input", e => {
     input.value = "";

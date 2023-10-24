@@ -59,7 +59,7 @@ defmodule DakkaWeb.MarketLive do
     <section
       id="listings"
       phx-hook="Listings"
-      class="flex mx-auto flex-col"
+      class="flex mx-auto flex-col relative"
       data-show-online={
         JS.show(
           transition:
@@ -78,6 +78,14 @@ defmodule DakkaWeb.MarketLive do
         )
       }
     >
+      <div
+        :if={@page > 1}
+        phx-click="to-start"
+        class="sticky p-4 text-zinc-500 top-1/2 z-50 text-center w-20 ml-auto xl:-mr-24 flex flex-col items-center justify-center border border-zinc-700 hover:cursor-pointer hover:text-zinc-300 hover:border-zinc-500 bg-zinc-900/50"
+      >
+        <.icon name="hero-arrow-up" class="h-8 w-8" />
+        <span class="text-sm inline-flex">To the start</span>
+      </div>
       <div
         id="market"
         class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-8 gap-x-4 auto-rows-max text-white flex-1 overflow-auto"
@@ -163,12 +171,12 @@ defmodule DakkaWeb.MarketLive do
           </.listing>
         </div>
       </div>
-      <div :if={@end_of_timeline?} class="mt-5 text-xl text-zinc-500 italic text-center">
-        <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
-        <span>Nothing left</span>
-        <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
-      </div>
     </section>
+    <div :if={@end_of_timeline?} class="mt-5 text-xl text-zinc-500 italic text-center">
+      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+      <span>Nothing left</span>
+      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+    </div>
     <.modal
       :if={@live_action in [:new_offer]}
       id="listing-modal"
@@ -251,6 +259,15 @@ defmodule DakkaWeb.MarketLive do
     else
       {:noreply, socket}
     end
+  end
+
+  def handle_event("to-start", _, socket) do
+    socket =
+      socket
+      |> paginate_listings(1)
+      |> push_event("scroll-to-top", %{})
+
+    {:noreply, socket}
   end
 
   def handle_event("create-offer", %{"id" => listing_id}, socket) do
