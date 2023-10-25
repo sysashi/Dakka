@@ -102,7 +102,7 @@ defmodule Dakka.Game do
     from(m in ItemMod, as: :mod)
     |> where([m], m.value_type in ^types)
     |> join(:left, [im], ts in TranslationString, on: ts.item_mod_id == im.id, as: :ts)
-    |> join(:left, [im, ts], lang in assoc(ts, :language), on: lang.code == :en, as: :lang)
+    |> join(:inner, [im, ts], lang in assoc(ts, :language), on: lang.code == :en, as: :lang)
     |> where([m, lang: l], l.code == :en or m.value_type == :predefined_value)
     |> join(:left_lateral, [], o in subquery(options_query), as: :options, on: true)
     # |> where([im, ts], fragment("? %> ?", ts.value, ^input))
