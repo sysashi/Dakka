@@ -146,6 +146,12 @@ defmodule DakkaWeb.OffersLive do
       Market.subscribe({:market, socket.assigns.scope.current_user})
     end
 
+    Market.read_offer_notifications(
+      socket.assigns.scope,
+      [:offer_created, :offer_cancelled, :offer_accepted, :offer_declined],
+      :all
+    )
+
     socket =
       socket
       |> assign(:page_title, "Offers")
@@ -257,12 +263,26 @@ defmodule DakkaWeb.OffersLive do
   end
 
   defp handle_seller_event(socket, %OfferCreated{offer: offer}) do
+    Market.read_offer_notifications(
+      socket.assigns.scope,
+      [:offer_created],
+      [offer.id]
+    )
+
     socket
     |> stream_insert(:incoming_offers, offer, at: 0)
     |> push_event("highlight", %{id: "incoming_offers-#{offer.id}"})
   end
 
-  defp handle_seller_event(socket, %_{offer: offer}) do
+  defp handle_seller_event(socket, %event_mod{offer: offer}) do
+    if event_mod == OfferCancelled do
+      Market.read_offer_notifications(
+        socket.assigns.scope,
+        [:offer_cancelled],
+        [offer.id]
+      )
+    end
+
     socket
     |> stream_insert(:incoming_offers, offer, at: -1)
     |> push_event("highlight", %{id: "incoming_offers-#{offer.id}"})
@@ -274,7 +294,15 @@ defmodule DakkaWeb.OffersLive do
     |> push_event("highlight", %{id: "sent_offers-#{offer.id}"})
   end
 
-  defp handle_buyer_event(socket, %_{offer: offer}) do
+  defp handle_buyer_event(socket, %event_mod{offer: offer}) do
+    if event_mod in [OfferAccepted, OfferDeclined] do
+      Market.read_offer_notifications(
+        socket.assigns.scope,
+        [:offer_accepted, :offer_declined],
+        [offer.id]
+      )
+    end
+
     socket
     |> stream_insert(:sent_offers, offer, at: -1)
     |> push_event("highlight", %{id: "sent_offers-#{offer.id}"})
@@ -287,6 +315,7 @@ defmodule DakkaWeb.OffersLive do
 
   defp paginate_incoming_offers(socket, new_page) do
     %{
+      scope: scope,
       incoming_offers_per_page: per_page,
       incoming_offers_page: cur_page,
       incoming_offers_filters: filters
@@ -304,7 +333,7 @@ defmodule DakkaWeb.OffersLive do
       end
 
     incoming_offers =
-      Market.list_incoming_offers(socket.assigns.scope,
+      Market.list_incoming_offers(scope,
         statuses: statuses,
         offset: offset,
         limit: per_page
@@ -319,6 +348,7 @@ defmodule DakkaWeb.OffersLive do
 
   defp paginate_sent_offers(socket, new_page) do
     %{
+      scope: scope,
       sent_offers_per_page: per_page,
       sent_offers_page: cur_page,
       sent_offers_filters: filters
@@ -336,7 +366,8 @@ defmodule DakkaWeb.OffersLive do
       end
 
     sent_offers =
-      Market.list_sent_offers(socket.assigns.scope,
+      Market.list_sent_offers(
+        scope,
         statuses: statuses,
         offset: offset,
         limit: per_page

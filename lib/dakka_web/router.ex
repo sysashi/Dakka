@@ -26,7 +26,8 @@ defmodule DakkaWeb.Router do
       on_mount: [
         {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
         DakkaWeb.Hooks.Scope,
-        DakkaWeb.Hooks.Nav
+        DakkaWeb.Hooks.Nav,
+        DakkaWeb.Hooks.Notifications
       ] do
       live "/", MarketLive, :index
     end
@@ -61,7 +62,12 @@ defmodule DakkaWeb.Router do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
 
     live_session :redirect_if_user_is_authenticated,
-      on_mount: [{DakkaWeb.UserAuth, :redirect_if_user_is_authenticated}, DakkaWeb.Hooks.Nav] do
+      on_mount: [
+        {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
+        DakkaWeb.Hooks.Scope,
+        DakkaWeb.Hooks.Nav,
+        DakkaWeb.Hooks.Notifications
+      ] do
       live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
@@ -78,8 +84,9 @@ defmodule DakkaWeb.Router do
       on_mount: [
         {DakkaWeb.UserAuth, :ensure_authenticated},
         DakkaWeb.Hooks.Scope,
-        DakkaWeb.Hooks.MarketPresence,
-        DakkaWeb.Hooks.Nav
+        DakkaWeb.Hooks.Nav,
+        DakkaWeb.Hooks.Notifications,
+        DakkaWeb.Hooks.MarketPresence
       ] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
@@ -105,7 +112,12 @@ defmodule DakkaWeb.Router do
     delete "/users/log_out", UserSessionController, :delete
 
     live_session :current_user,
-      on_mount: [{DakkaWeb.UserAuth, :mount_current_user}, DakkaWeb.Hooks.Nav] do
+      on_mount: [
+        {DakkaWeb.UserAuth, :mount_current_user},
+        DakkaWeb.Hooks.Scope,
+        DakkaWeb.Hooks.Nav,
+        DakkaWeb.Hooks.Notifications
+      ] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end

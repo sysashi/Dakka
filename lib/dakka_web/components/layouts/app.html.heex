@@ -13,13 +13,16 @@
       </.link>
       <nav class="my-4 flex-1">
         <ul class="flex gap-4 px-4 justify-center">
-          <li :for={
-            {link, path, tab} <- [
-              {"Market", if(@current_user, do: ~p"/market", else: "/"), :market},
-              {"Inventory", ~p"/inventory", :inventory},
-              {"Offers", ~p"/offers", :offers}
-            ]
-          }>
+          <li
+            :for={
+              {link, path, tab} <- [
+                {"Market", if(@current_user, do: ~p"/market", else: "/"), :market},
+                {"Inventory", ~p"/inventory", :inventory},
+                {"Offers", ~p"/offers", :offers}
+              ]
+            }
+            class="relative"
+          >
             <.link
               navigate={path}
               class={[
@@ -30,6 +33,28 @@
             >
               <%= link %>
             </.link>
+            <div
+              :if={tab == :offers && @offers_unread_notifications_count > 0}
+              id="offers-unread-notifications-count"
+              class={[
+                "absolute bg-red-700/80 rounded-full flex justify-center items-center w-5 h-5 border border-red-900",
+                "-top-2 -right-5"
+              ]}
+            >
+              <span class={[
+                "text-zinc-200 inline-flex font-bold font-mono",
+                if(@offers_unread_notifications_count >= 100,
+                  do: "text-[10px]",
+                  else: "text-[12px]"
+                )
+              ]}>
+                <%= if @offers_unread_notifications_count >= 100 do %>
+                  99+
+                <% else %>
+                  <%= @offers_unread_notifications_count %>
+                <% end %>
+              </span>
+            </div>
           </li>
         </ul>
       </nav>
@@ -82,6 +107,14 @@
 <main class="px-4 py-20 sm:px-6 lg:px-8 bg-zinc-900 flex-1 w-full">
   <div class="mx-auto max-w-5xl">
     <.flash_group flash={@flash} />
+    <span
+      class="text-white"
+      phx-click={JS.dispatch("enable-browser-notifications")}
+      id="browser-notifications"
+      phx-hook="BrowserNotifications"
+    >
+      Enable browser notifications
+    </span>
     <%= @inner_content %>
   </div>
 </main>

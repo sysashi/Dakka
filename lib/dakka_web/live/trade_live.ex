@@ -128,7 +128,7 @@ defmodule DakkaWeb.TradeLive do
 
   defp build_user_message(user, body) do
     %{
-      id: "#{user.id}" <> Ecto.UUID.generate(),
+      id: Ecto.UUID.generate() <> "#{user.id}",
       from: user,
       body: body,
       type: :user_message

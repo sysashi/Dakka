@@ -3,10 +3,87 @@ defmodule Dakka.Accounts do
   The Accounts context.
   """
 
-  import Ecto.Query, warn: false
-  alias Dakka.Repo
+  @pubsub Dakka.PubSub
 
-  alias Dakka.Accounts.{User, UserToken, UserNotifier}
+  import Ecto.Query, warn: false
+
+  alias Dakka.{Repo, Scope}
+
+  alias Dakka.Accounts.{
+    User,
+    UserToken,
+    UserNotifier,
+    UserNotification
+  }
+
+  ## Notifications
+  def subscribe(%Scope{current_user: %User{} = user}) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(user))
+  end
+
+  def broadcast_notification(%UserNotification{} = notification) do
+    Phoenix.PubSub.broadcast(
+      @pubsub,
+      topic(notification.user),
+      {__MODULE__, notification}
+    )
+  end
+
+  def topic(%User{} = user), do: "user_notifications:#{user.id}"
+
+  def list_user_notifications(scope, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 20)
+    offset = Keyword.get(opts, :offset, 0)
+
+    UserNotification
+    |> where(user_id: ^scope.current_user_id)
+    |> where(^build_filters(opts))
+    |> limit(^limit)
+    |> offset(^offset)
+    |> preload([:listing, :offer])
+    |> Repo.all()
+  end
+
+  def count_notifications(scope, opts \\ []) do
+    UserNotification
+    |> where(user_id: ^scope.current_user_id)
+    |> where(^build_filters(opts))
+    |> Repo.aggregate(:count, :id)
+  end
+
+  def count_notifications_by_action(scope, opts) do
+    UserNotification
+    |> where(user_id: ^scope.current_user_id)
+    |> where(^build_filters(opts))
+    |> group_by([n], n.action)
+    |> select([n], {n.action, count(n)})
+    |> Repo.all()
+    |> Enum.into(%{})
+  end
+
+  def notifications_query(scope, opts \\ []) do
+    UserNotification
+    |> where(user_id: ^scope.current_user_id)
+    |> where(^build_filters(opts))
+  end
+
+  defp build_filters(filters) do
+    Enum.reduce(filters, true, fn
+      {key, value}, dynamic when key in [:status, :actions] ->
+        dynamic(^dynamic and ^notifications_filter(key, value))
+
+      _, dynamic ->
+        dynamic
+    end)
+  end
+
+  defp notifications_filter(:status, :unread), do: dynamic([n], is_nil(n.read_at))
+  defp notifications_filter(:status, :read), do: dynamic([n], not is_nil(n.read_at))
+  defp notifications_filter(:status, _), do: dynamic(true)
+  defp notifications_filter(:actions, []), do: dynamic(true)
+  defp notifications_filter(:actions, actions), do: dynamic([n], n.action in ^actions)
+
+  ##
 
   def get_users_map(ids) do
     User

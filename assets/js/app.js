@@ -58,10 +58,56 @@ Hooks.Listings = {
   }
 }
 
+Hooks.BrowserNotifications = {
+  mounted() {
+    this.setup();
+  },
+
+  setup() {
+    if (!("Notification" in window)) {
+      this.el.innerHTML = "This browser does not support desktop notification";
+    } else {
+      let action = this.actionText(Notification.permission);
+      this.el.innerHTML = action;
+
+      if (Notification.permission !== "granted") {
+        this.el.addEventListener("click", (e) => {
+          Notification.requestPermission().then((permission) => {
+            let action = this.actionText(permission);
+            this.el.innerHTML = action;
+          });
+        });
+      }
+    }
+  },
+
+  actionText(permission) {
+    switch (permission) {
+      case "granted":
+        return "Notifications enabled";
+
+      case "denied":
+      case "default":
+        return "Enable browser notifications"
+    }
+  }
+}
+
+function notify(title, body, tag) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    const notification = new Notification(title, {body, tag})
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {hooks: Hooks, params: {_csrf_token: csrfToken}})
 
-window.addEventListener(`phx:highlight`, (e) => {
+window.addEventListener("phx:browser-notify", ({detail}) => {
+  let {title, body, tag} = detail;
+  notify(title, body, tag);
+});
+
+window.addEventListener("phx:highlight", (e) => {
   let el = document.getElementById(e.detail.id)
 
   if(el) {

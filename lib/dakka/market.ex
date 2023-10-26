@@ -13,7 +13,9 @@ defmodule Dakka.Market do
   alias Dakka.Scope
   alias Dakka.Inventory
   alias Dakka.Inventory.UserGameItem
+  alias Dakka.Accounts
   alias Dakka.Accounts.User
+  alias Dakka.Accounts.UserNotification
 
   alias Dakka.Market.{
     Listing,
@@ -484,6 +486,7 @@ defmodule Dakka.Market do
   def create_offer(scope, listing_id, attrs, opts \\ []) do
     listing_query =
       active_listing_query()
+      |> preload(user_game_item: :user)
       |> where(id: ^listing_id)
       |> lock("FOR UPDATE")
 
@@ -516,9 +519,17 @@ defmodule Dakka.Market do
               {:error, :inactive_listing}
           end
       end)
+      |> Multi.insert(:notification, fn %{offer: offer, listing: listing} ->
+        UserNotification.build(
+          listing.user_game_item.user,
+          offer,
+          :offer_created,
+          scope.current_user
+        )
+      end)
 
     case Repo.transaction(multi) do
-      {:ok, %{offer: offer}} ->
+      {:ok, %{offer: offer, notification: notification}} ->
         offer = preload_item_with_strings(offer)
 
         broadcast(
@@ -528,6 +539,8 @@ defmodule Dakka.Market do
           ],
           %OfferCreated{offer: offer}
         )
+
+        Accounts.broadcast_notification(%{notification | offer: offer})
 
         {:ok, offer}
 
@@ -586,9 +599,12 @@ defmodule Dakka.Market do
             {:error, {:unacceptable_status, status}}
         end
       end)
+      |> Multi.insert(:notification, fn %{offer: offer} ->
+        UserNotification.build(offer.user, offer, :offer_accepted, scope.current_user)
+      end)
 
     case Repo.transaction(multi) do
-      {:ok, %{accept_offer: accepted_offer}} ->
+      {:ok, %{accept_offer: accepted_offer, notification: notification}} ->
         accepted_offer = preload_item_with_strings(accepted_offer)
 
         broadcast(
@@ -598,6 +614,8 @@ defmodule Dakka.Market do
           ],
           %OfferAccepted{offer: accepted_offer}
         )
+
+        Accounts.broadcast_notification(%{notification | offer: accepted_offer})
 
         {:ok, accepted_offer}
 
@@ -620,18 +638,31 @@ defmodule Dakka.Market do
     if offer.status in [:active, :accepted_by_seller] do
       changeset = ListingOffer.change_status(offer, :declined_by_seller)
 
-      with {:ok, offer} <- Repo.update(changeset) do
-        offer = preload_item_with_strings(offer)
+      multi =
+        Multi.new()
+        |> Multi.update(:offer, changeset)
+        |> Multi.insert(:notification, fn %{offer: offer} ->
+          UserNotification.build(offer.user, offer, :offer_declined, scope.current_user)
+        end)
 
-        broadcast(
-          [
-            market: offer.user,
-            market: scope.current_user
-          ],
-          %OfferDeclined{offer: offer}
-        )
+      case Repo.transaction(multi) do
+        {:ok, %{offer: offer, notification: notification}} ->
+          offer = preload_item_with_strings(offer)
 
-        {:ok, offer}
+          broadcast(
+            [
+              market: offer.user,
+              market: scope.current_user
+            ],
+            %OfferDeclined{offer: offer}
+          )
+
+          Accounts.broadcast_notification(%{notification | offer: offer})
+
+          {:ok, offer}
+
+        {:error, :offer, changeset, _changes} ->
+          {:error, changeset}
       end
     else
       {:ok, offer}
@@ -643,24 +674,43 @@ defmodule Dakka.Market do
       ListingOffer
       |> where(id: ^offer_id)
       |> where(user_id: ^scope.current_user_id)
+      |> preload(listing: :seller)
 
     offer = Repo.one!(offer_query)
 
     if offer.status in [:active, :accepted_by_seller] do
       changeset = ListingOffer.change_status(offer, :cancelled_by_buyer)
 
-      with {:ok, offer} <- Repo.update(changeset) do
-        offer = preload_item_with_strings(offer)
+      multi =
+        Multi.new()
+        |> Multi.update(:offer, changeset)
+        |> Multi.insert(:notification, fn %{offer: offer} ->
+          UserNotification.build(
+            offer.listing.seller,
+            offer,
+            :offer_cancelled,
+            scope.current_user
+          )
+        end)
 
-        broadcast(
-          [
-            market: scope.current_user,
-            market: offer.listing.user_game_item.user
-          ],
-          %OfferCancelled{offer: offer}
-        )
+      case Repo.transaction(multi) do
+        {:ok, %{offer: offer, notification: notification}} ->
+          offer = preload_item_with_strings(offer)
 
-        {:ok, offer}
+          broadcast(
+            [
+              market: scope.current_user,
+              market: offer.listing.user_game_item.user
+            ],
+            %OfferCancelled{offer: offer}
+          )
+
+          Accounts.broadcast_notification(%{notification | offer: offer})
+
+          {:ok, offer}
+
+        {:error, :offer, changeset, _changes} ->
+          {:error, changeset}
       end
     else
       {:ok, offer}
@@ -827,6 +877,35 @@ defmodule Dakka.Market do
 
   defp comp(named_binding, field, :eq, value) do
     dynamic([{^named_binding, l}], field(l, ^field) == ^value)
+  end
+
+  ## Market Notifications
+
+  def read_offer_notifications(scope, actions, offer_ids_or_all) do
+    filter =
+      case offer_ids_or_all do
+        :all ->
+          dynamic(true)
+
+        ids when is_list(ids) ->
+          dynamic([n], n.offer_id in ^ids)
+      end
+
+    query =
+      scope
+      |> Accounts.notifications_query(status: :unread, actions: actions)
+      |> where(^filter)
+      |> update(set: [read_at: ^NaiveDateTime.utc_now()])
+
+    {read_count, _} = Repo.update_all(query, [])
+
+    Phoenix.PubSub.broadcast(
+      @pubsub,
+      Accounts.topic(scope.current_user),
+      {:read_offers_notifications, read_count}
+    )
+
+    read_count
   end
 
   ## Utils
