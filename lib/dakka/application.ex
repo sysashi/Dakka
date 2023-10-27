@@ -48,7 +48,6 @@ defmodule Dakka.Application do
 
   defp setup_otel() do
     OpentelemetryEcto.setup([:dakka, :repo])
-    OpentelemetryLiveView.setup()
     OpentelemetryPhoenix.setup()
     OpentelemetryOban.setup()
   end

@@ -69,7 +69,6 @@ defmodule Dakka.MixProject do
        github: "open-telemetry/opentelemetry-erlang-contrib",
        branch: "main",
        subdir: "instrumentation/opentelemetry_phoenix"},
-      {:opentelemetry_liveview, "~> 1.0-rc.4"},
       {:opentelemetry_honeycomb_sampler, "~> 0.1.0"},
       {:opentelemetry_oban, "~> 1.0"},
 
