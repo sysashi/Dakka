@@ -19,56 +19,6 @@ defmodule DakkaWeb.CoreComponents do
   alias Phoenix.LiveView.JS
   import DakkaWeb.Gettext
 
-  attr :id, :any
-  attr :form, :any, default: nil
-  attr :field, :any
-  attr :results, :list, default: []
-  attr :on_change, :string
-  attr :result_click, :any
-  attr :placeholder, :string, default: nil
-
-  slot :result
-
-  def dropdown_search(assigns) do
-    ~H"""
-    <div class="relative" phx-click-away={hide("##{@id}_search_results")}>
-      <.form :if={@form} for={@form} phx-change={@on_change}>
-        <.input
-          type="text"
-          field={@form[@field]}
-          phx-focus={show("##{@id}_search_results")}
-          class!={"w-full bg-zinc-700 text-white text-xl border border-gray-500 placeholder-gray-400 placeholder:italic #{Enum.any?(@results) && "focus:rounded-b-none"}"}
-          placeholder={@placeholder}
-        />
-      </.form>
-
-      <.input
-        :if={!@form}
-        type="text"
-        field={@field}
-        phx-focus={show("##{@id}_search_results")}
-        class!={"w-full bg-zinc-700 text-white text-md border border-gray-500 placeholder-gray-400 placeholder:italic #{Enum.any?(@results) && "focus:rounded-b-none"}"}
-        placeholder={@placeholder}
-        autocomplete="off"
-      />
-
-      <ul
-        :if={Enum.any?(@results)}
-        class="text-white rounded-b-md bg-zinc-700 absolute z-10 w-full border-x border-b border-gray-500 overflow-auto max-h-[382px] placeholder-white"
-        id={"#{@id}_search_results"}
-      >
-        <li
-          :for={result <- @results}
-          class="flex items-center hover:cursor-pointer hover:bg-zinc-600 last:rounded-b-md p-2 border-b border-slate-600 h-[76px]"
-          phx-click={@result_click && @result_click.(result) |> hide("##{@id}_search_results")}
-        >
-          <%= render_slot(@result, result) %>
-        </li>
-      </ul>
-    </div>
-    """
-  end
-
   @doc """
   Renders a modal.
 

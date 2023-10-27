@@ -13,23 +13,45 @@ defmodule Dakka.Accounts do
     User,
     UserToken,
     UserNotifier,
+    UserSettings,
     UserNotification
   }
 
-  ## Notifications
+  alias Dakka.Accounts.Events.UserSettingsUpdated
+
   def subscribe(%Scope{current_user: %User{} = user}) do
     Phoenix.PubSub.subscribe(@pubsub, topic(user))
   end
 
-  def broadcast_notification(%UserNotification{} = notification) do
+  def broadcast(%UserNotification{user: user} = event), do: broadcast(user, event)
+  def broadcast(%UserSettingsUpdated{user: user} = event), do: broadcast(user, event)
+
+  defp broadcast(user, event) do
     Phoenix.PubSub.broadcast(
       @pubsub,
-      topic(notification.user),
-      {__MODULE__, notification}
+      topic(user),
+      {__MODULE__, event}
     )
   end
 
-  def topic(%User{} = user), do: "user_notifications:#{user.id}"
+  def topic(%User{} = user), do: "user_events:#{user.id}"
+
+  ## Settings
+
+  def change_user_settings(%Scope{} = scope, attrs \\ %{}) do
+    UserSettings.changeset(scope.current_user.settings, attrs)
+  end
+
+  def update_user_settings(%Scope{} = scope, attrs) do
+    changeset = User.settings_changeset(scope.current_user, attrs)
+
+    with {:ok, user} <- Repo.update(changeset) do
+      broadcast(%UserSettingsUpdated{user: user})
+      {:ok, user}
+    end
+  end
+
+  ## Notifications
 
   def list_user_notifications(scope, opts \\ []) do
     limit = Keyword.get(opts, :limit, 20)
@@ -168,6 +190,7 @@ defmodule Dakka.Accounts do
   def register_user(attrs) do
     %User{}
     |> User.registration_changeset(attrs)
+    |> Ecto.Changeset.put_embed(:settings, UserSettings.default())
     |> Repo.insert()
   end
 

@@ -63,32 +63,43 @@ Hooks.BrowserNotifications = {
     this.setup();
   },
 
+  updated() {
+    this.setup();
+  },
+
   setup() {
     if (!("Notification" in window)) {
       this.el.innerHTML = "This browser does not support desktop notification";
     } else {
       let action = this.actionText(Notification.permission);
       this.el.innerHTML = action;
+      this.applyClass(Notification.permission, this.el)
 
       if (Notification.permission !== "granted") {
         this.el.addEventListener("click", (e) => {
           Notification.requestPermission().then((permission) => {
             let action = this.actionText(permission);
             this.el.innerHTML = action;
+            this.applyClass(permission, this.el);
           });
         });
       }
     }
   },
 
+  applyClass(permission, el) {
+    let className = ((permission === "granted") ? "notif-enabled" : "notif-disabled");
+    el.classList.add(className);
+  },
+
   actionText(permission) {
     switch (permission) {
       case "granted":
-        return "Notifications enabled";
+        return "Permission granted";
 
       case "denied":
       case "default":
-        return "Enable browser notifications"
+        return "Grant permission"
     }
   }
 }

@@ -3,6 +3,8 @@ defmodule DakkaWeb.Router do
 
   import DakkaWeb.UserAuth
 
+  alias DakkaWeb.Hooks
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -25,9 +27,9 @@ defmodule DakkaWeb.Router do
     live_session :home_page,
       on_mount: [
         {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
-        DakkaWeb.Hooks.Scope,
-        DakkaWeb.Hooks.Nav,
-        DakkaWeb.Hooks.Notifications
+        Hooks.Scope,
+        Hooks.Nav,
+        {Hooks.User, :notifications}
       ] do
       live "/", MarketLive, :index
     end
@@ -64,9 +66,9 @@ defmodule DakkaWeb.Router do
     live_session :redirect_if_user_is_authenticated,
       on_mount: [
         {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
-        DakkaWeb.Hooks.Scope,
-        DakkaWeb.Hooks.Nav,
-        DakkaWeb.Hooks.Notifications
+        Hooks.Scope,
+        Hooks.Nav,
+        {Hooks.User, :notifications}
       ] do
       live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
@@ -83,10 +85,11 @@ defmodule DakkaWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [
         {DakkaWeb.UserAuth, :ensure_authenticated},
-        DakkaWeb.Hooks.Scope,
-        DakkaWeb.Hooks.Nav,
-        DakkaWeb.Hooks.Notifications,
-        DakkaWeb.Hooks.MarketPresence
+        Hooks.Scope,
+        Hooks.Nav,
+        {Hooks.User, :app_settings},
+        {Hooks.User, {:notifications, subscribe?: false}},
+        Hooks.MarketPresence
       ] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
@@ -114,9 +117,9 @@ defmodule DakkaWeb.Router do
     live_session :current_user,
       on_mount: [
         {DakkaWeb.UserAuth, :mount_current_user},
-        DakkaWeb.Hooks.Scope,
-        DakkaWeb.Hooks.Nav,
-        DakkaWeb.Hooks.Notifications
+        Hooks.Scope,
+        Hooks.Nav,
+        {Hooks.User, :notifications}
       ] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new

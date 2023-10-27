@@ -33,7 +33,7 @@ defmodule DakkaWeb.MarketComponents do
       </div>
       <div class="flex-1">
         <div class="relative">
-          <.item_card item={@listing.user_game_item} {@item_attrs} {@rest} />
+          <.item_card item={@listing.user_game_item} {@rest} />
           <div
             :if={@listing.status != :active}
             class="bg-gray-900/50 border border-red-900/50 absolute inset-0 flex items-center justify-center"

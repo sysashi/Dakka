@@ -64,13 +64,55 @@
             <li class="text-[0.8125rem] leading-6 text-white">
               <%= @current_user.username %>
             </li>
-            <li>
-              <.link
-                navigate={~p"/users/settings"}
+            <li class="relative">
+              <a
+                href="#"
                 class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline"
+                phx-click={
+                  JS.toggle(
+                    to: "#settings-dropdown-menu",
+                    in: {"duration-100", "opacity-0 scale-95", "opacity-100 scale-100"},
+                    out: {"duration-100", "opacity-100 scale-100", "opacity-0 scale-95"},
+                    time: 100
+                  )
+                }
               >
                 Settings
-              </.link>
+              </a>
+              <div
+                id="settings-dropdown-menu"
+                class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="menu-button"
+                tabindex="-1"
+                phx-click-away={
+                  JS.hide(
+                    transition: {"duration-100", "opacity-100 scale-100", "opacity-0 scale-95"}
+                  )
+                }
+              >
+                <div class="py-1" role="none">
+                  <.link
+                    patch={~p"/users/settings"}
+                    class="text-zinc-100 block px-4 py-2 text-sm hover:bg-zinc-700 hover:text-zinc-50"
+                    role="menuitem"
+                    tabindex="-1"
+                  >
+                    Account Settings
+                  </.link>
+                  <a
+                    href="#"
+                    class="text-zinc-100 block px-4 py-2 text-sm hover:bg-zinc-700 hover:text-zinc-50"
+                    role="menuitem"
+                    tabindex="-1"
+                    id="menu-item-1"
+                    phx-click={show_modal("app-settings")}
+                  >
+                    App Settings
+                  </a>
+                </div>
+              </div>
             </li>
             <li>
               <.link
@@ -107,14 +149,13 @@
 <main class="px-4 py-20 sm:px-6 lg:px-8 bg-zinc-900 flex-1 w-full">
   <div class="mx-auto max-w-5xl">
     <.flash_group flash={@flash} />
-    <span
-      class="text-white"
-      phx-click={JS.dispatch("enable-browser-notifications")}
-      id="browser-notifications"
-      phx-hook="BrowserNotifications"
-    >
-      Enable browser notifications
-    </span>
     <%= @inner_content %>
   </div>
+  <.modal :if={@scope.current_user_id && Phoenix.LiveView.connected?(@socket)} id="app-settings">
+    <.live_component
+      module={DakkaWeb.UserSettingsFormComponent}
+      id="app-settings-form"
+      scope={@scope}
+    />
+  </.modal>
 </main>

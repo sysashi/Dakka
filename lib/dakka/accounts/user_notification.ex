@@ -40,6 +40,8 @@ defmodule Dakka.Accounts.UserNotification do
     timestamps(updated_at: false)
   end
 
+  def actions(), do: @actions
+
   def to_browser_notification(%UserNotification{} = notif, lang \\ :en) do
     tag =
       if notif.action in [:offer_created, :offer_cancelled] do

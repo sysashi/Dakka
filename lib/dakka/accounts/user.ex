@@ -2,12 +2,15 @@ defmodule Dakka.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Dakka.Accounts.UserSettings
+
   schema "users" do
     field :email, :string
     field :username, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    embeds_one :settings, UserSettings, on_replace: :update
 
     timestamps()
   end
@@ -153,6 +156,15 @@ defmodule Dakka.Accounts.User do
   def confirm_changeset(user) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     change(user, confirmed_at: now)
+  end
+
+  @doc """
+  Changeset for updating user settings
+  """
+  def settings_changeset(user, attrs \\ %{}) do
+    user
+    |> cast(attrs, [])
+    |> cast_embed(:settings)
   end
 
   @doc """

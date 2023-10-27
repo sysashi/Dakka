@@ -540,7 +540,7 @@ defmodule Dakka.Market do
           %OfferCreated{offer: offer}
         )
 
-        Accounts.broadcast_notification(%{notification | offer: offer})
+        Accounts.broadcast(%{notification | offer: offer})
 
         {:ok, offer}
 
@@ -615,7 +615,7 @@ defmodule Dakka.Market do
           %OfferAccepted{offer: accepted_offer}
         )
 
-        Accounts.broadcast_notification(%{notification | offer: accepted_offer})
+        Accounts.broadcast(%{notification | offer: accepted_offer})
 
         {:ok, accepted_offer}
 
@@ -657,7 +657,7 @@ defmodule Dakka.Market do
             %OfferDeclined{offer: offer}
           )
 
-          Accounts.broadcast_notification(%{notification | offer: offer})
+          Accounts.broadcast(%{notification | offer: offer})
 
           {:ok, offer}
 
@@ -705,7 +705,7 @@ defmodule Dakka.Market do
             %OfferCancelled{offer: offer}
           )
 
-          Accounts.broadcast_notification(%{notification | offer: offer})
+          Accounts.broadcast(%{notification | offer: offer})
 
           {:ok, offer}
 
