@@ -30,6 +30,13 @@ defmodule DakkaWeb.InventoryLive do
         id="user-items"
         class="grid grid-cols-1 px-10 sm:px-0 mx-auto sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-2 gap-y-4 auto-rows-max items-baseline"
         phx-update="stream"
+        phx-viewport-top={@page > 1 && "prev-page"}
+        phx-viewport-bottom={!@end_of_timeline? && "next-page"}
+        phx-page-loading
+        class={[
+          if(@end_of_timeline?, do: "pb-10", else: "pb-[calc(200vh)]"),
+          if(@page == 1, do: "pt-10", else: "pt-[calc(200vh)]")
+        ]}
       >
         <%= for {id, item} <- @streams.items do %>
           <div class="flex flex-col" id={id}>
@@ -56,6 +63,11 @@ defmodule DakkaWeb.InventoryLive do
         <% end %>
       </section>
     </article>
+    <div :if={@end_of_timeline? && @page > 1} class="mt-5 text-xl text-zinc-500 italic text-center">
+      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+      <span>Nothing left</span>
+      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+    </div>
     <.modal
       :if={@live_action in [:new_listing, :edit_listing]}
       id="listing-modal"
@@ -108,11 +120,11 @@ defmodule DakkaWeb.InventoryLive do
       Inventory.subscribe(scope)
     end
 
-    items = Inventory.list_user_items(scope)
-
     socket =
       socket
-      |> stream(:items, items)
+      |> stream(:items, [])
+      |> assign(page: 1, per_page: 20)
+      |> paginate_items(1)
 
     {:ok, socket}
   end
@@ -128,6 +140,22 @@ defmodule DakkaWeb.InventoryLive do
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Error occured")}
+    end
+  end
+
+  def handle_event("next-page", _, socket) do
+    {:noreply, paginate_items(socket, socket.assigns.page + 1)}
+  end
+
+  def handle_event("prev-page", %{"_overran" => true}, socket) do
+    {:noreply, paginate_items(socket, 1)}
+  end
+
+  def handle_event("prev-page", _, socket) do
+    if socket.assigns.page > 1 do
+      {:noreply, paginate_items(socket, socket.assigns.page - 1)}
+    else
+      {:noreply, socket}
     end
   end
 
@@ -164,6 +192,36 @@ defmodule DakkaWeb.InventoryLive do
 
   defp maybe_mark_relist(listing, %{"relist" => "true"}), do: %{listing | relist: true}
   defp maybe_mark_relist(listing, _), do: listing
+
+  defp paginate_items(socket, new_page) do
+    %{per_page: per_page, page: cur_page} = socket.assigns
+    offset = (new_page - 1) * per_page
+
+    items =
+      Inventory.list_user_items(
+        socket.assigns.scope,
+        offset: offset,
+        limit: per_page
+      )
+
+    {items, at, limit} =
+      if new_page >= cur_page do
+        {items, -1, per_page * 3 * -1}
+      else
+        {Enum.reverse(items), 0, per_page * 3}
+      end
+
+    case items do
+      [] ->
+        assign(socket, end_of_timeline?: at == -1)
+
+      [_ | _] = items ->
+        socket
+        |> assign(end_of_timeline?: false)
+        |> assign(:page, new_page)
+        |> stream(:items, items, at: at, limit: limit)
+    end
+  end
 
   ## Market Events
 

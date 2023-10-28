@@ -298,13 +298,6 @@ defmodule DakkaWeb.MarketLive do
            buyout?: true
          ) do
       {:ok, _offer} ->
-        # listing = Market.get_listing_with_buyer_offers!(listing.id, socket.assigns.current_user)
-
-        # socket =
-        #   socket
-        #   |> stream_insert(:listings, listing)
-        #   |> push_event("highlight", %{id: "listings-#{listing.id}"})
-
         {:noreply, socket}
 
       {:error, :not_found} ->
