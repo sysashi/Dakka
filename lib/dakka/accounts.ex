@@ -26,7 +26,13 @@ defmodule Dakka.Accounts do
   def broadcast(%UserNotification{user: user} = event), do: broadcast(user, event)
   def broadcast(%UserSettingsUpdated{user: user} = event), do: broadcast(user, event)
 
-  defp broadcast(user, event) do
+  def broadcast(users, event) when is_list(users) do
+    for user <- users do
+      broadcast(user, event)
+    end
+  end
+
+  def broadcast(user, event) do
     Phoenix.PubSub.broadcast(
       @pubsub,
       topic(user),
@@ -46,7 +52,7 @@ defmodule Dakka.Accounts do
     changeset = User.settings_changeset(scope.current_user, attrs)
 
     with {:ok, user} <- Repo.update(changeset) do
-      broadcast(%UserSettingsUpdated{user: user})
+      broadcast(user, %UserSettingsUpdated{user: user})
       {:ok, user}
     end
   end

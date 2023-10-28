@@ -103,7 +103,8 @@ defmodule DakkaWeb.Hooks.User do
     end
   end
 
-  defp handle_user_notification({:read_offers_notifications, count}, socket) when count >= 0 do
+  defp handle_user_notification({Accounts, {:read_offers_notifications, count}}, socket)
+       when count >= 0 do
     %{offers_unread_notifications_count: current_count} = socket.assigns
     new_count = max(current_count - count, 0)
     {:halt, assign(socket, :offers_unread_notifications_count, new_count)}

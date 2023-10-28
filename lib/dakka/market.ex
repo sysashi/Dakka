@@ -18,6 +18,7 @@ defmodule Dakka.Market do
   alias Dakka.Accounts.UserNotification
 
   alias Dakka.Market.{
+    Public,
     Listing,
     ListingOffer
   }
@@ -34,14 +35,18 @@ defmodule Dakka.Market do
     TradeMessage
   }
 
-  def topic(:market), do: "market_events"
-  def topic({:market, %User{} = user}), do: "market_events:user:#{user.id}"
-  def topic({:market, %Scope{} = scope}), do: "market_events:user:#{scope.current_user.id}"
-  def topic({:listing, %Listing{} = listing}), do: "market_events:listing:#{listing.id}"
-  def topic(%ListingOffer{} = offer), do: "market_events:offer:#{offer.id}"
+  def subscribe(entity) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(entity))
+  end
 
-  def subscribe(topic \\ :market) do
-    Phoenix.PubSub.subscribe(Dakka.PubSub, topic(topic))
+  def topic(%ListingOffer{} = offer), do: "market_events:offer:#{offer.id}"
+  def topic(user_or_scope), do: user_topic(user_or_scope)
+
+  defp user_topic(%User{} = user), do: "user_market_events:#{user.id}"
+  defp user_topic(%Scope{current_user: %User{} = user}), do: "user_market_events:#{user.id}"
+
+  def broadcast!(user_or_scope, event) do
+    Phoenix.PubSub.broadcast!(@pubsub, topic(user_or_scope), {__MODULE__, event})
   end
 
   def send_trade_message(offer, message) do
@@ -122,7 +127,7 @@ defmodule Dakka.Market do
       Listing
       |> where(id: ^listing_id)
       |> where(deleted: false)
-      |> preload(user_game_item: ^Inventory.item_preloads())
+      |> preload(user_game_item: ^Inventory.item_preloads(), user_game_item: :user)
       |> preload(^preload)
       |> Repo.one!()
 
@@ -159,7 +164,7 @@ defmodule Dakka.Market do
     active_listing_query()
     |> apply_listing_filters(filters)
     |> order_by(desc: :inserted_at)
-    |> preload(user_game_item: ^Inventory.item_preloads())
+    |> preload(user_game_item: ^Inventory.item_preloads(), user_game_item: :user)
     |> preload(^preload)
     |> limit(^limit)
     |> offset(^offset)
@@ -172,16 +177,6 @@ defmodule Dakka.Market do
   def change_listing(listing, attrs \\ %{}) do
     Listing.changeset(listing, attrs)
   end
-
-  # item listing created ->
-  #   item owner - {:market, user_id}
-  #   market - :market
-  #
-  # item listings (updated | deleted | sold | expired) ->
-  #  item owner - {:market, user_id}
-  #  market - :market
-  #  users with offers {:listing, listing_id}
-  #
 
   def create_listing(listing, attrs) do
     changeset = Listing.changeset(listing, attrs)
@@ -196,13 +191,10 @@ defmodule Dakka.Market do
           | user_game_item: Inventory.group_strings(listing.user_game_item)
         }
 
-        broadcast(
-          [
-            :market,
-            market: listing.user_game_item.user
-          ],
-          %ListingCreated{listing: listing}
-        )
+        event = %ListingCreated{listing: listing}
+
+        Public.broadcast(event)
+        broadcast!(listing.user_game_item.user, event)
 
         {:ok, listing}
 
@@ -237,14 +229,10 @@ defmodule Dakka.Market do
 
     case Repo.transaction(multi) do
       {:ok, %{listing: listing}} ->
-        broadcast(
-          [
-            :market,
-            market: listing.user_game_item.user,
-            listing: listing
-          ],
-          %ListingUpdated{listing: listing}
-        )
+        event = %ListingUpdated{listing: listing}
+
+        Public.broadcast(event)
+        broadcast!(listing.user_game_item.user, event)
 
         {:ok, listing}
 
@@ -263,14 +251,10 @@ defmodule Dakka.Market do
 
     case Repo.transaction(multi) do
       {:ok, %{listing: listing}} ->
-        broadcast(
-          [
-            :market,
-            market: listing.user_game_item.user,
-            listing: listing
-          ],
-          %ListingDeleted{listing: listing}
-        )
+        event = %ListingDeleted{listing: listing}
+
+        Public.broadcast(event)
+        broadcast!(listing.user_game_item.user, event)
 
         {:ok, listing}
 
@@ -312,14 +296,10 @@ defmodule Dakka.Market do
 
     case Repo.transaction(multi) do
       {:ok, %{listing: listing}} ->
-        broadcast(
-          [
-            :market,
-            market: listing.user_game_item.user,
-            listing: listing
-          ],
-          %ListingSold{listing: listing}
-        )
+        event = %ListingSold{listing: listing}
+
+        Public.broadcast(event)
+        broadcast!(listing.user_game_item.user, event)
 
         {:ok, listing}
 
@@ -468,13 +448,10 @@ defmodule Dakka.Market do
 
     case Repo.insert(changeset) do
       {:ok, offer} ->
-        broadcast(
-          [
-            market: user,
-            market: listing.user_game_item.user
-          ],
-          %OfferCreated{offer: preload_item_with_strings(offer)}
-        )
+        event = %OfferCreated{offer: preload_item_with_strings(offer)}
+
+        broadcast!(user, event)
+        broadcast!(listing.user_game_item.user, event)
 
         {:ok, offer}
 
@@ -531,14 +508,10 @@ defmodule Dakka.Market do
     case Repo.transaction(multi) do
       {:ok, %{offer: offer, notification: notification}} ->
         offer = preload_item_with_strings(offer)
+        event = %OfferCreated{offer: offer}
 
-        broadcast(
-          [
-            market: scope.current_user,
-            market: offer.listing.user_game_item.user
-          ],
-          %OfferCreated{offer: offer}
-        )
+        broadcast!(scope, event)
+        broadcast!(offer.listing.user_game_item.user, event)
 
         Accounts.broadcast(%{notification | offer: offer})
 
@@ -606,14 +579,10 @@ defmodule Dakka.Market do
     case Repo.transaction(multi) do
       {:ok, %{accept_offer: accepted_offer, notification: notification}} ->
         accepted_offer = preload_item_with_strings(accepted_offer)
+        event = %OfferAccepted{offer: accepted_offer}
 
-        broadcast(
-          [
-            market: accepted_offer.user,
-            market: scope.current_user
-          ],
-          %OfferAccepted{offer: accepted_offer}
-        )
+        broadcast!(scope, event)
+        broadcast!(accepted_offer.user, event)
 
         Accounts.broadcast(%{notification | offer: accepted_offer})
 
@@ -648,14 +617,10 @@ defmodule Dakka.Market do
       case Repo.transaction(multi) do
         {:ok, %{offer: offer, notification: notification}} ->
           offer = preload_item_with_strings(offer)
+          event = %OfferDeclined{offer: offer}
 
-          broadcast(
-            [
-              market: offer.user,
-              market: scope.current_user
-            ],
-            %OfferDeclined{offer: offer}
-          )
+          broadcast!(scope, event)
+          broadcast!(offer.user, event)
 
           Accounts.broadcast(%{notification | offer: offer})
 
@@ -696,15 +661,10 @@ defmodule Dakka.Market do
       case Repo.transaction(multi) do
         {:ok, %{offer: offer, notification: notification}} ->
           offer = preload_item_with_strings(offer)
+          event = %OfferCancelled{offer: offer}
 
-          broadcast(
-            [
-              market: scope.current_user,
-              market: offer.listing.user_game_item.user
-            ],
-            %OfferCancelled{offer: offer}
-          )
-
+          broadcast!(scope, event)
+          broadcast!(offer.listing.user_game_item.user, event)
           Accounts.broadcast(%{notification | offer: offer})
 
           {:ok, offer}
@@ -714,16 +674,6 @@ defmodule Dakka.Market do
       end
     else
       {:ok, offer}
-    end
-  end
-
-  def broadcast(topics, event) do
-    for topic <- topics do
-      Phoenix.PubSub.broadcast(
-        @pubsub,
-        topic(topic),
-        {__MODULE__, event}
-      )
     end
   end
 
@@ -899,9 +849,8 @@ defmodule Dakka.Market do
 
     {read_count, _} = Repo.update_all(query, [])
 
-    Phoenix.PubSub.broadcast(
-      @pubsub,
-      Accounts.topic(scope.current_user),
+    Accounts.broadcast(
+      scope.current_user,
       {:read_offers_notifications, read_count}
     )
 

@@ -7,45 +7,52 @@ defmodule DakkaWeb.MarketComponents do
   attr :listing, :any, required: true
   attr :item_attrs, :any, default: []
   attr :rest, :global, include: ~w(show_properties show_flavor_text show_icon)
+
+  slot :header
   slot :actions
 
   def listing(assigns) do
     ~H"""
-    <div class="flex">
-      <div
-        :if={@show_price}
-        class={"mr-2 space-y-2 items-baseline max-w-[60px] #{@listing.status != :active && "grayscale"}"}
-      >
-        <div :if={@listing.price_gold} class="bg-zinc-800 border border-zinc-700 px-2">
-          <.gold amount={@listing.price_gold} />
-        </div>
-        <div :if={@listing.price_golden_keys} class="bg-zinc-800 border border-zinc-700 px-2">
-          <.golden_key amount={@listing.price_golden_keys} />
-        </div>
-        <div
-          :if={@listing.open_for_offers}
-          class="bg-zinc-800 border border-zinc-700 px-2 text-left leading-[70%] py-2"
-        >
-          <span class="text-[12px] font-semibold capitalize text-sky-300">
-            open for offers
-          </span>
-        </div>
+    <article>
+      <div class="ml-[60px]">
+        <%= render_slot(@header) %>
       </div>
-      <div class="flex-1">
-        <div class="relative">
-          <.item_card item={@listing.user_game_item} {@rest} />
+      <div class="flex">
+        <div
+          :if={@show_price}
+          class={"mr-2 space-y-2 items-baseline max-w-[60px] #{@listing.status != :active && "grayscale"}"}
+        >
+          <div :if={@listing.price_gold} class="bg-zinc-800 border border-zinc-700 px-2">
+            <.gold amount={@listing.price_gold} />
+          </div>
+          <div :if={@listing.price_golden_keys} class="bg-zinc-800 border border-zinc-700 px-2">
+            <.golden_key amount={@listing.price_golden_keys} />
+          </div>
           <div
-            :if={@listing.status != :active}
-            class="bg-gray-900/50 border border-red-900/50 absolute inset-0 flex items-center justify-center"
+            :if={@listing.open_for_offers}
+            class="bg-zinc-800 border border-zinc-700 px-2 text-left leading-[70%] py-2"
           >
-            <span class="text-2xl font-bold text-gray-100 capitalize"><%= @listing.status %></span>
+            <span class="text-[12px] font-semibold capitalize text-sky-300">
+              open for offers
+            </span>
           </div>
         </div>
-        <div :if={@listing.status == :active} class="flex-none">
-          <%= render_slot(@actions) %>
+        <div class="flex-1">
+          <div class="relative">
+            <.item_card item={@listing.user_game_item} {@rest} />
+            <div
+              :if={@listing.status != :active}
+              class="bg-gray-900/50 border border-red-900/50 absolute inset-0 flex items-center justify-center"
+            >
+              <span class="text-2xl font-bold text-gray-100 capitalize"><%= @listing.status %></span>
+            </div>
+          </div>
+          <div :if={@listing.status == :active} class="flex-none">
+            <%= render_slot(@actions) %>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
     """
   end
 

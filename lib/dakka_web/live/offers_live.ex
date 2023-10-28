@@ -142,12 +142,14 @@ defmodule DakkaWeb.OffersLive do
   end
 
   def mount(_params, _session, socket) do
+    %{scope: scope} = socket.assigns
+
     if connected?(socket) do
-      Market.subscribe({:market, socket.assigns.scope.current_user})
+      Market.subscribe(scope)
     end
 
     Market.read_offer_notifications(
-      socket.assigns.scope,
+      scope,
       [:offer_created, :offer_cancelled, :offer_accepted, :offer_declined],
       :all
     )

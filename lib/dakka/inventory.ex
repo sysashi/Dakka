@@ -250,10 +250,9 @@ defmodule Dakka.Inventory do
         broadcast(scope, %UserItemDeleted{user_item: item})
 
         for listing <- listings do
-          Dakka.Market.broadcast(
-            [:market, market: scope, listing: listing],
-            %Dakka.Market.Events.ListingDeleted{listing: listing}
-          )
+          market_event = %Dakka.Market.Events.ListingDeleted{listing: listing}
+          Dakka.Market.broadcast!(scope, market_event)
+          Dakka.Market.Public.broadcast(market_event)
         end
 
         {:ok, item}

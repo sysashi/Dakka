@@ -101,13 +101,14 @@ defmodule DakkaWeb.InventoryLive do
   end
 
   def mount(_params, _session, socket) do
-    scope = socket.assigns.scope
-    items = Inventory.list_user_items(scope)
+    %{scope: scope} = socket.assigns
 
     if connected?(socket) do
+      Market.subscribe(scope)
       Inventory.subscribe(scope)
-      Market.subscribe({:market, socket.assigns.current_user})
     end
+
+    items = Inventory.list_user_items(scope)
 
     socket =
       socket

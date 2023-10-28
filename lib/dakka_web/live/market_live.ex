@@ -106,6 +106,36 @@ defmodule DakkaWeb.MarketLive do
           ]}
         >
           <.listing listing={listing} show_icon={false}>
+            <:header>
+              <div class="text-xs mb-2 text-zinc-300 px-2 py-[2px] flex gap-x-2">
+                <div class="flex-1">
+                  <span class="relative inline-flex items-center">
+                    <span
+                      :if={@online_sellers[listing.user_game_item.user_id]}
+                      class={[
+                        "listing-seller-status-#{listing.user_game_item.user_id}"
+                      ]}
+                    >
+                      <span class="relative flex h-2 w-2 mr-1">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75">
+                        </span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      </span>
+                    </span>
+                    <span class="font-semibold break-all">
+                      <%= listing.user_game_item.user.username %>
+                    </span>
+                  </span>
+                </div>
+
+                <div
+                  class="flex-1 invisible text-right test"
+                  data-listing-age-secs={listing_age_secs(listing)}
+                >
+                  <%= listing.inserted_at %>
+                </div>
+              </div>
+            </:header>
             <:actions>
               <div
                 :if={@scope.current_user_id && listing.status == :active}
@@ -153,20 +183,6 @@ defmodule DakkaWeb.MarketLive do
                     </.link>
                 <% end %>
               </div>
-              <span
-                :if={@online_sellers[listing.user_game_item.user_id]}
-                class={[
-                  "relative flex items-center mt-1",
-                  "listing-seller-status-#{listing.user_game_item.user_id}"
-                ]}
-              >
-                <span class="text-xs text-zinc-400"> Seller Online </span>
-                <span class="relative flex h-2 w-2 ml-1">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75">
-                  </span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-              </span>
             </:actions>
           </.listing>
         </div>
@@ -198,13 +214,12 @@ defmodule DakkaWeb.MarketLive do
   end
 
   def mount(_params, _session, socket) do
-    if connected?(socket) do
-      Market.subscribe()
-      Presence.subscribe(:market)
+    %{scope: scope} = socket.assigns
 
-      if current_user = socket.assigns.scope.current_user do
-        Market.subscribe({:market, current_user})
-      end
+    if connected?(socket) do
+      Presence.subscribe(:market)
+      Market.Public.subscribe()
+      scope.current_user && Market.subscribe(scope)
     end
 
     base_filters =
@@ -318,7 +333,7 @@ defmodule DakkaWeb.MarketLive do
     {:noreply, paginate_listings(socket, 1)}
   end
 
-  def handle_info({Market, %ListingCreated{listing: listing}}, socket) do
+  def handle_info({Market.Public, %ListingCreated{listing: listing}}, socket) do
     %{per_page: limit, page: cur_page} = socket.assigns
 
     socket =
@@ -334,12 +349,12 @@ defmodule DakkaWeb.MarketLive do
     {:noreply, socket}
   end
 
-  def handle_info({Market, %ListingDeleted{listing: listing}}, socket) do
+  def handle_info({Market.Public, %ListingDeleted{listing: listing}}, socket) do
     socket = stream_delete(socket, :listings, listing)
     {:noreply, socket}
   end
 
-  def handle_info({Market, %mod{listing: listing}}, socket)
+  def handle_info({Market.Public, %mod{listing: listing}}, socket)
       when mod in [
              ListingExpired,
              ListingSold,
@@ -370,6 +385,12 @@ defmodule DakkaWeb.MarketLive do
       |> push_event("highlight", %{id: "listings-#{listing.id}"})
       |> maybe_put_event_flash_message(event)
 
+    {:noreply, socket}
+  end
+
+  # Ignore private listing events since they already been handled
+  # by public handler
+  def handle_info({Market, %{listing: _listing}}, socket) do
     {:noreply, socket}
   end
 
@@ -405,6 +426,10 @@ defmodule DakkaWeb.MarketLive do
 
   defp price_set?(listing) do
     listing.price_gold || listing.price_golden_keys
+  end
+
+  defp listing_age_secs(%{inserted_at: ts}) do
+    NaiveDateTime.diff(NaiveDateTime.utc_now(), ts)
   end
 
   ## Event flashes

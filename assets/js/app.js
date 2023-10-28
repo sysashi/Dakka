@@ -40,7 +40,27 @@ Hooks.ChatAutoScroll = {
 }
 
 Hooks.Listings = {
+  rtf: new Intl.RelativeTimeFormat('en', { style: 'short' }),
+  intervalRef: null,
+  ageAttr: "data-listing-age-secs",
+
+  initListingAge() {
+    this.el.querySelectorAll(`[${this.ageAttr}].invisible`).forEach(elem => {
+      this.updateAge(elem, this.rtf);
+      elem.classList.remove("invisible");
+    });
+  },
+
   mounted() {
+    this.initListingAge();
+
+    this.intervalRef = setInterval(() => {
+      this.el.querySelectorAll(`[${this.ageAttr}]`).forEach(elem => {
+        this.updateAge(elem, this.rtf);
+      });
+    }, 1000)
+
+    // handle online/offline events
     let showOnline = this.el.getAttribute("data-show-online");
     let hideOnline = this.el.getAttribute("data-hide-online");
 
@@ -55,6 +75,34 @@ Hooks.Listings = {
         liveSocket.execJS(elem, hideOnline);
       });
     })
+  },
+
+  updated() {
+    this.initListingAge();
+  },
+
+  destroyed() {
+    clearInterval(this.intervalRef);
+  },
+
+  updateAge(elem, rtf) {
+    let age = elem.getAttribute(this.ageAttr);
+    let ageSecs = parseInt(age);
+    let ageMins = Math.floor(ageSecs / 60);
+    let ageHours = Math.floor(ageMins / 60);
+    let ageDays = Math.floor(ageHours / 24);
+
+    elem.setAttribute(this.ageAttr, ageSecs + 1);
+
+    if (ageDays > 0) {
+      elem.textContent = `${rtf.format(-ageDays, 'day')}`;
+    } else if (ageHours > 0) {
+      elem.textContent = `${rtf.format(-ageHours, 'hour')}`;
+    } else if (ageMins > 0) {
+      elem.textContent = `${rtf.format(-ageMins, 'minute')}`;
+    } else {
+      elem.textContent = `${rtf.format(-ageSecs, 'second')}`;
+    }
   }
 }
 
