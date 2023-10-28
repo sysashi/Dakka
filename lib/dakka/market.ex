@@ -678,6 +678,13 @@ defmodule Dakka.Market do
   end
 
   # test
+  def listing_matches?(%Listing{} = listing, filters) do
+    active_listing_query()
+    |> apply_listing_filters(filters)
+    |> where([listing: l], l.id == ^listing.id)
+    |> Repo.exists?()
+  end
+
   defp apply_listing_filters(query, filters) do
     {simple_filters, mods} =
       Enum.split_with(filters, fn filter ->

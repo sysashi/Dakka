@@ -327,10 +327,10 @@ defmodule DakkaWeb.MarketLive do
   end
 
   def handle_info({Market.Public, %ListingCreated{listing: listing}}, socket) do
-    %{per_page: limit, page: cur_page} = socket.assigns
+    %{per_page: limit, page: cur_page, filters: filters} = socket.assigns
 
     socket =
-      if cur_page == 1 do
+      if cur_page == 1 && Market.listing_matches?(listing, filters) do
         socket
         |> stream_insert(:listings, listing, at: 0, limit: limit)
         |> push_event("highlight", %{id: "listings-#{listing.id}"})
