@@ -67,4 +67,6 @@ defmodule Dakka.Accounts.UserSettings do
     action = Atom.to_string(action)
     Enum.find_value(notifications, false, &(&1.action == action && &1.enabled))
   end
+
+  def app_notification_enabled?(nil, action), do: app_notification_enabled?(default(), action)
 end
