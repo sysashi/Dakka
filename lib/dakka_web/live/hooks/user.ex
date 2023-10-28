@@ -54,22 +54,24 @@ defmodule DakkaWeb.Hooks.User do
     %{scope: scope} = socket.assigns
     subscribe? = Keyword.get(opts, :subscribe?, true)
 
-    if scope.current_user && connected?(socket) do
-      subscribe? && Accounts.subscribe(scope)
+    settings =
+      (scope.current_user && scope.current_user.settings) || Accounts.UserSettings.default()
 
-      socket =
+    socket =
+      if scope.current_user && connected?(socket) do
+        subscribe? && Accounts.subscribe(scope)
+
         socket
         |> attach_hook(
           :user_settings_handler,
           :handle_info,
           &handle_settings_update/2
         )
-        |> assign(:settings, scope.current_user.settings || Accounts.UserSettings.default())
+      else
+        socket
+      end
 
-      {:cont, socket}
-    else
-      {:cont, assign(socket, :settings, Accounts.UserSettings.default())}
-    end
+    {:cont, assign(socket, :settings, settings)}
   end
 
   ## Notifications
