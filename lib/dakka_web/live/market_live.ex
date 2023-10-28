@@ -40,10 +40,10 @@ defmodule DakkaWeb.MarketLive do
           )
         }
       >
-        <span class="filter-toggle">
+        <span class="filter-toggle hidden">
           Show Filters <.icon name="hero-arrow-down" class="h-4 w-4" />
         </span>
-        <span class="filter-toggle hidden">
+        <span class="filter-toggle">
           Hide Filters <.icon name="hero-arrow-up" class="h-4 w-4" />
         </span>
       </h4>
