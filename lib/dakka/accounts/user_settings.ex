@@ -58,6 +58,10 @@ defmodule Dakka.Accounts.UserSettings do
     }
   end
 
+  def default_display() do
+    %Display{}
+  end
+
   def change_default_settings(attrs \\ %{}) do
     changeset(default(), attrs)
   end

@@ -64,7 +64,7 @@ defmodule DakkaWeb.Hooks.User do
           :handle_info,
           &handle_settings_update/2
         )
-        |> assign(:settings, scope.current_user.settings)
+        |> assign(:settings, scope.current_user.settings || Accounts.UserSettings.default())
 
       {:cont, socket}
     else

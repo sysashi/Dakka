@@ -16,6 +16,10 @@ defmodule DakkaWeb.UserSettingsFormComponent do
             <.input type="checkbox" field={form[:show_item_properties]} label="Item Properties" />
             <.input type="checkbox" field={form[:show_item_flavor_text]} label="Item Flavor Text" />
           </.inputs_for>
+
+          <p class="text-zinc-300 text-xs mt-1">
+            Some pages need to be reloaded for the settings to apply effect
+          </p>
         </section>
 
         <section>

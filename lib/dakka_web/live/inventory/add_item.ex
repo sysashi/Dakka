@@ -103,7 +103,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
               )
             }
           >
-            <.item_card item={item_preview} />
+            <.item_card item={item_preview} display_settings={@display_settings} />
             <div class="mt-2">
               <.item_rarities
                 rarities={@rarities}

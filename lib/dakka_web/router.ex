@@ -29,7 +29,8 @@ defmodule DakkaWeb.Router do
         {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
         Hooks.Scope,
         Hooks.Nav,
-        {Hooks.User, :notifications}
+        {Hooks.User, :app_settings},
+        {Hooks.User, {:notifications, subscribe?: false}}
       ] do
       live "/", MarketLive, :index
     end

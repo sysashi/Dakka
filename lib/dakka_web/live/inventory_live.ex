@@ -23,7 +23,12 @@ defmodule DakkaWeb.InventoryLive do
     ~H"""
     <div class="mb-4 border-b border-zinc-700 pb-4">
       <h3 class="text-center mb-2 text-2xl text-gray-500">Add new item</h3>
-      <.live_component module={DakkaWeb.Inventory.AddItemLive} id="add-item" scope={@scope} />
+      <.live_component
+        module={DakkaWeb.Inventory.AddItemLive}
+        id="add-item"
+        scope={@scope}
+        display_settings={@settings.display}
+      />
     </div>
     <article class="flex text-white">
       <section
@@ -40,7 +45,7 @@ defmodule DakkaWeb.InventoryLive do
       >
         <%= for {id, item} <- @streams.items do %>
           <div class="flex flex-col" id={id}>
-            <.item_card item={item} show_icon={true} />
+            <.item_card item={item} display_settings={@settings.display} />
             <div class="mt-2 flex justify-between items-center">
               <.listing_actions :if={item.listing} listing={item.listing} />
               <.button

@@ -39,7 +39,12 @@ defmodule DakkaWeb.OffersLive do
           phx-update="stream"
           id="incoming_offers"
         >
-          <.incoming_offer :for={{id, offer} <- @streams.incoming_offers} offer={offer} id={id}>
+          <.incoming_offer
+            :for={{id, offer} <- @streams.incoming_offers}
+            id={id}
+            offer={offer}
+            display_settings={@settings.display}
+          >
             <:actions>
               <span
                 :if={offer.status == :active}
@@ -91,7 +96,12 @@ defmodule DakkaWeb.OffersLive do
           phx-update="stream"
           id="sent-offers"
         >
-          <.sent_offer :for={{id, offer} <- @streams.sent_offers} offer={offer} id={id}>
+          <.sent_offer
+            :for={{id, offer} <- @streams.sent_offers}
+            display_settings={@settings.display}
+            offer={offer}
+            id={id}
+          >
             <:actions>
               <.link
                 :if={offer.status == :accepted_by_seller}

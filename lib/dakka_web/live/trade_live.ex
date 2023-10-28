@@ -94,7 +94,7 @@ defmodule DakkaWeb.TradeLive do
           |> assign(:seller, offer.listing.user_game_item.user)
           |> assign(:buyer, offer.user)
           |> assign_message_form()
-          |> stream(:messages, initial_messages(offer))
+          |> stream(:messages, initial_messages(offer, socket.assigns.settings))
           |> assign_presences()
 
         {:ok, socket}
@@ -170,11 +170,12 @@ defmodule DakkaWeb.TradeLive do
   defp return_to(%{assigns: %{return_to: path}}), do: path
   defp return_to(_socket), do: "/"
 
-  defp initial_messages(offer) do
+  defp initial_messages(offer, settings) do
     [
       %{
         id: "listing-#{offer.listing.id}",
         listing: offer.listing,
+        display_settings: settings.display,
         type: :listing,
         from: offer.listing.user_game_item.user
       },
@@ -217,7 +218,7 @@ defmodule DakkaWeb.TradeLive do
     ~H"""
     <div class="text-center">
       <span class="text-white py-1 font-semibold"> Listing </span>
-      <.listing listing={@listing} />
+      <.listing listing={@listing} display_settings={@display_settings} />
     </div>
     """
   end

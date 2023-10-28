@@ -3,8 +3,7 @@ defmodule DakkaWeb.GameComponents do
 
   import DakkaWeb.CoreComponents
 
-  # alias Phoenix.LiveView.JS
-  # import DakkaWeb.Gettext
+  alias Dakka.Accounts.UserSettings
 
   @item_image_path "/images/item_base_icons"
 
@@ -88,9 +87,7 @@ defmodule DakkaWeb.GameComponents do
 
   attr :lang, :atom, default: :en
   attr :item, :any, required: true
-  attr :show_icon, :boolean, default: true
-  attr :show_flavor_text, :boolean, default: true
-  attr :show_properties, :boolean, default: true
+  attr :display_settings, :any, default: %UserSettings.Display{}
 
   def item_card(assigns) do
     assigns = assign_new(assigns, :item_base, fn -> item_base(assigns.item) end)
@@ -104,11 +101,11 @@ defmodule DakkaWeb.GameComponents do
         "before:content-[''] before:inset-x-0 before:inset-y-0 before:pointer-events-none before:h-auto"
       ]
     }>
-      <header class={"mb-2 flex justify-center border-b text-center #{rarity_colors(@item_base.item_rarity.slug)}"}>
+      <header class={"flex justify-center border-b last:border-b-0 text-center #{rarity_colors(@item_base.item_rarity.slug)}"}>
         <h3 class="text-xl px-4 py-3 font-semibold"><%= string(@item_base, :name, @lang) %></h3>
       </header>
 
-      <div :if={@show_icon} class="flex justify-center">
+      <div :if={@display_settings.show_item_icon} class="flex justify-center">
         <%= if @item_base.icon_path do %>
           <div class="inline-flex max-h-[140px]">
             <img class="h-auto w-full object-contain" src={item_image_path(@item_base)} />
@@ -121,14 +118,27 @@ defmodule DakkaWeb.GameComponents do
         <% end %>
       </div>
 
-      <%= if Enum.any?(@item.implicit_mods) || Enum.any?(@item.explicit_mods) do %>
+      <section
+        :if={Enum.any?(@item.implicit_mods) || Enum.any?(@item.explicit_mods)}
+        class="mt-2 last:mb-2"
+      >
         <.item_mods implicit={@item.implicit_mods} explicit={@item.explicit_mods} lang={@lang} />
-        <.group_separator :if={Enum.any?(@item_base.properties) && @show_properties} dotted />
-      <% end %>
+        <.group_separator
+          :if={Enum.any?(@item_base.properties) && @display_settings.show_item_properties}
+          dotted
+        />
+      </section>
 
-      <.item_properties :if={@show_properties} properties={@item_base.properties} lang={@lang} />
+      <.item_properties
+        :if={@display_settings.show_item_properties}
+        properties={@item_base.properties}
+        lang={@lang}
+      />
 
-      <section :if={@show_flavor_text} class="text-[#86644f] px-4 text-center mb-2">
+      <section
+        :if={@display_settings.show_item_flavor_text}
+        class="text-[#86644f] px-4 text-center mb-2"
+      >
         <.group_separator />
         <%= string(@item_base, :flavor_text, @lang) %>
       </section>

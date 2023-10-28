@@ -105,7 +105,7 @@ defmodule DakkaWeb.MarketLive do
             "max-w-xs w-full mx-auto border-zinc-500/10"
           ]}
         >
-          <.listing listing={listing} show_icon={false}>
+          <.listing listing={listing} display_settings={@settings.display}>
             <:header>
               <div class="text-xs mb-2 text-zinc-300 px-2 py-[2px] flex gap-x-2">
                 <div class="flex-1">

@@ -3,10 +3,13 @@ defmodule DakkaWeb.MarketComponents do
 
   import DakkaWeb.GameComponents
 
+  alias Dakka.Accounts.UserSettings.Display
+
   attr :show_price, :boolean, default: true
   attr :listing, :any, required: true
   attr :item_attrs, :any, default: []
   attr :rest, :global, include: ~w(show_properties show_flavor_text show_icon)
+  attr :display_settings, Display
 
   slot :header
   slot :actions
@@ -39,7 +42,7 @@ defmodule DakkaWeb.MarketComponents do
         </div>
         <div class="flex-1">
           <div class="relative">
-            <.item_card item={@listing.user_game_item} {@rest} />
+            <.item_card item={@listing.user_game_item} display_settings={@display_settings} />
             <div
               :if={@listing.status != :active}
               class="bg-gray-900/50 border border-red-900/50 absolute inset-0 flex items-center justify-center"
@@ -58,6 +61,8 @@ defmodule DakkaWeb.MarketComponents do
 
   attr :id, :any
   attr :offer, :any, required: true
+  attr :display_settings, Display
+
   slot :actions
 
   def incoming_offer(assigns) do
@@ -85,7 +90,7 @@ defmodule DakkaWeb.MarketComponents do
             class="peer hover:cursor-pointer hover:brightness-125 transition-all"
           />
           <div class="absolute hidden peer-hover:inline-flex peer-hover:z-20 w-96 top-[100%] -right-[50%] ml-2 backdrop-blur-md p-4 rounded-xl">
-            <.listing listing={@offer.listing} />
+            <.listing listing={@offer.listing} display_settings={@display_settings} />
           </div>
         </div>
       </div>
@@ -105,6 +110,8 @@ defmodule DakkaWeb.MarketComponents do
 
   attr :id, :any
   attr :offer, :any, required: true
+  attr :display_settings, Display
+
   slot :actions
 
   def sent_offer(assigns) do
@@ -131,7 +138,7 @@ defmodule DakkaWeb.MarketComponents do
             class="peer hover:cursor-pointer hover:brightness-125 transition-all"
           />
           <div class="absolute hidden peer-hover:inline-flex peer-hover:z-20 w-96 top-[100%] right-0 ml-2 backdrop-blur-md p-4 rounded-xl">
-            <.listing listing={@offer.listing} />
+            <.listing listing={@offer.listing} display_settings={@display_settings} />
           </div>
         </div>
       </div>
