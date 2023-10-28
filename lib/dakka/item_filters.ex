@@ -95,7 +95,8 @@ defmodule Dakka.ItemFilters do
 
   defp num_mod_changeset(mod, attrs) do
     mod
-    |> cast(attrs, [:slug, :value, :value_type, :label, :op])
+    |> cast(attrs, [:slug, :value, :value_float, :value_type, :label, :op])
+    |> Dakka.Inventory.UserGameItemMod.float_to_int()
   end
 
   defp prop_mod_changeset(mod, attrs) do
