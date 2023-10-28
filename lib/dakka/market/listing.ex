@@ -11,7 +11,7 @@ defmodule Dakka.Market.Listing do
     field :open_for_offers, :boolean, default: false
     field :expires_at, :utc_datetime
     field :status, Ecto.Enum, values: [:active, :sold, :expired], default: :active
-    field :deleted, :boolean, default: false
+    field :deleted_at, :naive_datetime_usec
 
     field :relist, :boolean, default: false, virtual: true
 
@@ -24,7 +24,7 @@ defmodule Dakka.Market.Listing do
 
   def changeset(listing, attrs \\ %{}) do
     listing
-    |> cast(attrs, [:price_gold, :price_golden_keys, :open_for_offers, :deleted, :relist])
+    |> cast(attrs, [:price_gold, :price_golden_keys, :open_for_offers, :deleted_at, :relist])
     |> validate_required([:open_for_offers])
     |> validate_number(:price_gold, greater_than: 0)
     |> validate_number(:price_golden_keys, greater_than: 0)
@@ -45,7 +45,7 @@ defmodule Dakka.Market.Listing do
   end
 
   def delete(listing) do
-    change(listing, %{deleted: true})
+    change(listing, %{deleted_at: NaiveDateTime.utc_now()})
   end
 
   def mark_sold(listing) do

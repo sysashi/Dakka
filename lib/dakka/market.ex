@@ -57,7 +57,7 @@ defmodule Dakka.Market do
   def active_listing_query() do
     from(l in Listing, as: :listing)
     |> where(status: :active)
-    |> where(deleted: false)
+    |> where([l], is_nil(l.deleted_at))
   end
 
   def listings() do
@@ -102,7 +102,7 @@ defmodule Dakka.Market do
 
   def get_listing_by_seller_item_id!(%Scope{} = scope, id) do
     Listing
-    |> where(deleted: false)
+    |> where([l], is_nil(l.deleted_at))
     |> where([l, i], i.id == ^id)
     |> join(:inner, [l], i in assoc(l, :user_game_item), on: i.user_id == ^scope.current_user_id)
     |> join(:inner, [l, i], u in assoc(i, :user))
@@ -126,7 +126,7 @@ defmodule Dakka.Market do
     listing =
       Listing
       |> where(id: ^listing_id)
-      |> where(deleted: false)
+      |> where([l], is_nil(l.deleted_at))
       |> preload(user_game_item: ^Inventory.item_preloads(), user_game_item: :user)
       |> preload(^preload)
       |> Repo.one!()
@@ -267,7 +267,7 @@ defmodule Dakka.Market do
     listings_query =
       Listing
       |> where(user_game_item_id: ^item.id)
-      |> update(set: [deleted: true])
+      |> update(set: [deleted_at: ^NaiveDateTime.utc_now()])
       |> select([l], l)
 
     Multi.new()

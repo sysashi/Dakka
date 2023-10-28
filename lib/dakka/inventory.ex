@@ -35,12 +35,17 @@ defmodule Dakka.Inventory do
     [:explicit_mods, :item_mod, :strings]
   ]
 
+  def user_item_query(scope) do
+    UserGameItem
+    |> where(user_id: ^scope.current_user_id)
+    |> where([i], is_nil(i.deleted_at))
+  end
+
   def get_user_item!(%Scope{} = scope, id) do
     item =
-      UserGameItem
+      scope
+      |> user_item_query()
       |> where(id: ^id)
-      |> where(user_id: ^scope.current_user_id)
-      |> where(deleted: false)
       |> preload(^item_preloads())
       |> preload(:listing)
       |> Repo.one!()
@@ -50,10 +55,9 @@ defmodule Dakka.Inventory do
 
   def find_user_item(%Scope{} = scope, id) do
     query =
-      UserGameItem
+      scope
+      |> user_item_query()
       |> where(id: ^id)
-      |> where(user_id: ^scope.current_user_id)
-      |> where(deleted: false)
       |> preload(^item_preloads())
       |> preload(:listing)
 
@@ -66,9 +70,8 @@ defmodule Dakka.Inventory do
     limit = Keyword.get(opts, :limit, 20)
     offset = Keyword.get(opts, :offset, 0)
 
-    UserGameItem
-    |> where(deleted: false)
-    |> where(user_id: ^scope.current_user_id)
+    scope
+    |> user_item_query()
     |> order_by(asc: :position, desc: :inserted_at)
     |> preload(^item_preloads())
     |> preload(:listing)
