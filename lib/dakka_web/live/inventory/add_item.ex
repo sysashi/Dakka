@@ -55,6 +55,8 @@ defmodule DakkaWeb.Inventory.AddItemLive do
           </div>
           <div class="flex-1 ml-1"><%= result.localized_string %></div>
           <.item_rarities
+            class="gap-2 ml-2"
+            rarity_class="w-[30px] h-[30px] sm:w-[40px] sm:h-[40px]"
             rarities={result.rarities}
             on_click={
               fn rarity ->
@@ -93,7 +95,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
         <:failed :let={_reason}>
           <span class="text-white">There was an error loading the item</span>
         </:failed>
-        <div class="flex mt-2" id="custom_item_container">
+        <div class="sm:flex mt-2" id="custom_item_container">
           <div
             class="self-start flex-1"
             phx-mounted={
@@ -106,6 +108,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
             <.item_card item={item_preview} display_settings={@display_settings} />
             <div class="mt-2">
               <.item_rarities
+                class="justify-between mb-2"
                 rarities={@rarities}
                 on_click={
                   fn rarity ->
@@ -116,7 +119,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
               />
             </div>
           </div>
-          <div class="border border-gray-700 ml-2 self-start flex-1">
+          <div class="border border-gray-700 md:ml-2 self-start flex-1">
             <.form
               for={@form}
               phx-change="validate_user_game_item"

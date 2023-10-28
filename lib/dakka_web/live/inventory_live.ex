@@ -81,7 +81,7 @@ defmodule DakkaWeb.InventoryLive do
     >
       <.live_component
         scope={@scope}
-        module={DakkaWeb.ListingFormComponent}
+        module={DakkaWeb.MarketLive.ListingFormComponent}
         id={@listing.id || :new}
         title={@page_title}
         action={@live_action}

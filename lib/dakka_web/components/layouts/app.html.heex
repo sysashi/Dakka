@@ -1,12 +1,14 @@
 <header class="px-4 sm:px-6 lg:px-8">
   <div class="max-w-6xl mx-auto">
-    <div class="flex items-center justify-between border-b border-zinc-700 py-4">
+    <div class="flex items-center justify-between border-b border-zinc-700 py-4 flex-wrap">
       <.link
         navigate={if @current_user, do: ~p"/market", else: "/"}
-        class="inline-flex flex-1 justify-start px-4 group items-center text-zinc-100 hover:text-white"
+        class="inline-flex flex-1 justify-center sm:justify-start px-4 group items-center text-zinc-100 hover:text-white"
       >
-        <.coins class="w-16 h-16 mr-1 group-hover:brightness-110" />
-        <h3 class="text-4xl text-zinc-100 group-hover:text-white">Dakka</h3>
+        <.coins class="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 mr-1 group-hover:brightness-110" />
+        <h3 class="text-2xl sm:text-3xl md:text-4xl text-zinc-100 group-hover:text-white">
+          Dakka
+        </h3>
         <span class="px-1 py-[1px] bg-red-700 mt-2 ml-1 text-xs rounded-md border-red-600 border font-semibold -skew-y-6 group-hover:bg-red-600">
           Alpha
         </span>
@@ -59,7 +61,7 @@
         </ul>
       </nav>
       <nav class="flex-1">
-        <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end text-white">
+        <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-center sm:justify-end text-white">
           <%= if @current_user do %>
             <li class="text-[0.8125rem] leading-6 text-white">
               <%= @current_user.username %>
@@ -81,7 +83,7 @@
               </a>
               <div
                 id="settings-dropdown-menu"
-                class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
+                class="absolute left-[50%] -translate-x-[50%] z-10 mt-2 w-56 origin-top-right rounded-md bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="menu-button"
@@ -146,7 +148,7 @@
     </div>
   </div>
 </header>
-<main class="px-4 py-20 sm:px-6 lg:px-8 bg-zinc-900 flex-1 w-full">
+<main class="px-4 py-2 sm:py-10 md:py-20 sm:px-6 lg:px-8 bg-zinc-900 flex-1 w-full">
   <div class="mx-auto max-w-5xl">
     <.flash_group flash={@flash} />
     <%= @inner_content %>

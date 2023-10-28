@@ -39,18 +39,24 @@ defmodule DakkaWeb.GameComponents do
   attr :rarities, :list, default: []
   attr :on_click, :any, default: nil
   attr :active, :string, default: nil
+  attr :class, :any, default: nil
+  attr :rarity_class, :any, default: nil
 
   def item_rarities(assigns) do
     ~H"""
-    <div class="grid grid-cols-8 gap-1">
+    <div class={["flex flex-wrap", @class]}>
       <div
         :for={%{"rarity" => rarity, "rarity_rank" => rank} = record <- @rarities}
         phx-click={@on_click && @on_click.(record)}
         title={String.capitalize(rarity)}
-        style={"grid-column: #{rank}"}
+        style={
+          # "grid-column: #{rank}"
+          "order: #{rank}"
+        }
         class={[
           "h-[40px] w-[40px] hover:border-b-2 hover:border-cyan-300 shadow-inner shadow-white hover:cursor-pointer",
-          if(@active == rarity, do: "border-b-2 border-cyan-300")
+          if(@active == rarity, do: "border-b-2 border-cyan-300"),
+          @rarity_class
         ]}
       >
         <span class={[
@@ -387,7 +393,7 @@ defmodule DakkaWeb.GameComponents do
   attr :rest, :global, include: ~w(disabled form readonly)
   attr :class, :string, default: nil
 
-  def checkgroup(%{field: field} = assigns) do
+  def rarities_picker(%{field: field} = assigns) do
     assigns =
       assigns
       |> assign(field: nil, id: assigns.id || field.id)
@@ -419,7 +425,7 @@ defmodule DakkaWeb.GameComponents do
               <span class={[
                 "peer-checked:brightness-110 px-2 py-1 brightness-50",
                 "capitalize flex items-center shadow-inner h-full w-full justify-center hover:shadow-gray-800",
-                "border font-mono text-sm #{rarity_colors(value)}"
+                "border font-mono text-sm #{rarity_colors(value)} leading-snug"
               ]}>
                 <%= label %>
               </span>

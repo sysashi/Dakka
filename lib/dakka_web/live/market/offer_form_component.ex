@@ -6,7 +6,7 @@ defmodule DakkaWeb.MarketLive.OfferFormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-xs min-w-[400px]">
+    <div class="max-w-md">
       <.form
         for={@form}
         phx-target={@myself}

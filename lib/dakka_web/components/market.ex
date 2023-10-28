@@ -116,7 +116,7 @@ defmodule DakkaWeb.MarketComponents do
 
   def sent_offer(assigns) do
     ~H"""
-    <article id={@id} class="space-y-2">
+    <article id={@id} class="space-y-2 group">
       <div class="px-4 mt-4 flex items-center  justify-center space-x-2">
         <span>You offered</span>
         <%= if buyout?(@offer) do %>

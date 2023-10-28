@@ -21,10 +21,10 @@ defmodule DakkaWeb.OffersLive do
 
   def render(assigns) do
     ~H"""
-    <article class="flex divide-x divide-zinc-800 items-baseline">
+    <article class="sm:flex sm:divide-x sm:divide-zinc-800 items-baseline">
       <section class="flex flex-col flex-1">
-        <h2 class="text-center text-3xl text-gray-100">Incoming Offers</h2>
-        <div class="xl:w-[50%] sm:w-[60%] w-full mx-auto">
+        <h2 class="text-center text-2xl md:text-3xl text-gray-100">Incoming Offers</h2>
+        <div class="xl:w-[50%] sm:w-[60%] w-full mx-auto mt-1">
           <.form for={@incoming_offers_filters_form} phx-change="filter-incoming-offers">
             <.input
               id="incoming-offers-filters-status"
@@ -79,9 +79,9 @@ defmodule DakkaWeb.OffersLive do
           </span>
         </div>
       </section>
-      <section class="flex-1">
-        <h2 class="text-center text-3xl text-gray-100">Sent Offers</h2>
-        <div class="xl:w-[50%] sm:w-[60%] w-full mx-auto">
+      <section class="flex-1 mt-4 border-t border-blue-300 border-dashed sm:mt-0 sm:border-t-0">
+        <h2 class="text-center text-2xl md:text-3xl text-gray-100 mt-2 sm:mt-0">Sent Offers</h2>
+        <div class="xl:w-[50%] sm:w-[60%] w-full mx-auto mt-1">
           <.form for={@sent_offers_filters_form} phx-change="filter-sent-offers">
             <.input
               id="sent-offers-filters-status"

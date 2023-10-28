@@ -1,4 +1,4 @@
-defmodule DakkaWeb.ListingFormComponent do
+defmodule DakkaWeb.MarketLive.ListingFormComponent do
   use DakkaWeb, :live_component
 
   alias Dakka.Market
@@ -6,7 +6,7 @@ defmodule DakkaWeb.ListingFormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-xs min-w-[400px]">
+    <div class="max-w-md">
       <.form
         for={@form}
         phx-target={@myself}
@@ -23,7 +23,7 @@ defmodule DakkaWeb.ListingFormComponent do
 
         <.input type="checkbox" field={@form[:open_for_offers]} label="Open for Offers" />
 
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center flex-wrap">
           <.button phx-disable-with="Saving...">
             Save Listing
           </.button>
@@ -38,15 +38,6 @@ defmodule DakkaWeb.ListingFormComponent do
           >
             Mark as Sold
           </.button>
-
-          <span
-            :if={@id != :new && !@listing.relist}
-            phx-target={@myself}
-            class="text-red-300 underline underline-offset-4 italic cursor-pointer"
-            phx-click="delete"
-          >
-            Delete
-          </span>
         </div>
       </.form>
 
@@ -60,6 +51,16 @@ defmodule DakkaWeb.ListingFormComponent do
         <p class="mt-2 ml-2">
           Will decline all active offers for this item
         </p>
+      </div>
+
+      <div
+        :if={@id != :new && !@listing.relist}
+        data-confirm="Sure?"
+        phx-target={@myself}
+        class="text-red-300 underline underline-offset-4 italic cursor-pointer text-right mt-1"
+        phx-click="delete"
+      >
+        Delete
       </div>
     </div>
     """

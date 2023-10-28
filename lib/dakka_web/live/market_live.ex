@@ -40,15 +40,15 @@ defmodule DakkaWeb.MarketLive do
           )
         }
       >
-        <span class="filter-toggle hidden">
+        <span class="filter-toggle sm:hidden">
           Show Filters <.icon name="hero-arrow-down" class="h-4 w-4" />
         </span>
-        <span class="filter-toggle">
+        <span class="filter-toggle hidden sm:block">
           Hide Filters <.icon name="hero-arrow-up" class="h-4 w-4" />
         </span>
       </h4>
 
-      <div class="h-full origin-top" id="filters-form-wrapper">
+      <div class="h-full origin-top hidden sm:block" id="filters-form-wrapper">
         <article class="bg-zinc-800 border border-zinc-700">
           <.live_component module={DakkaWeb.MarketLive.ListingFiltersFormComponent} id="filters" />
         </article>
@@ -195,7 +195,7 @@ defmodule DakkaWeb.MarketLive do
     </div>
     <.modal
       :if={@live_action in [:new_offer]}
-      id="listing-modal"
+      id="listing-offer-modal"
       show
       on_cancel={JS.patch(~p"/market")}
     >

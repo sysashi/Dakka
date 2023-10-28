@@ -11,14 +11,14 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
     ~H"""
     <div class="">
       <.form for={@form} phx-change="validate-item-filters" phx-target={@myself} phx-submit="search">
-        <article class="grid grid-cols-3 gap-4 p-4">
-          <section class="col-span-full flex gap-4 border-b border-zinc-600 pb-4 items-baseline">
+        <article class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+          <section class="col-span-full space-y-4 md:space-y-0 md:flex gap-4 border-b border-zinc-600 pb-4 items-baseline">
             <div class="flex-1">
               <.label>Item Base</.label>
               <.item_base_filters form={@form} target={@myself} />
             </div>
             <div class="flex-1">
-              <.checkgroup
+              <.rarities_picker
                 options={Dakka.Game.rarity_options()}
                 field={@form[:rarities]}
                 label="Rarity"
@@ -459,7 +459,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
             placeholder={@placeholder}
             class={[
               "bg-zinc-800 p-1.5",
-              "block w-full text-zinc-100 focus:ring-0 sm:text-sm sm:leading-6",
+              "block w-full text-zinc-100 focus:ring-0",
               "phx-no-feedback:border-zinc-600 phx-no-feedback:focus:border-zinc-500",
               @errors == [] && "border-zinc-600 focus:border-zinc-500",
               @errors != [] && "border-rose-400 focus:border-rose-400"
@@ -471,7 +471,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
             id={@op_id}
             name={@op_name}
             class={[
-              "block w-full border border-zinc-600 bg-zinc-700 text-zinc-50 shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm appearance-none"
+              "block w-full border border-zinc-600 bg-zinc-700 text-zinc-50 shadow-sm focus:border-zinc-400 focus:ring-0 appearance-none p-1.5"
             ]}
           >
             <option :if={@prompt} value=""><%= @prompt %></option>
