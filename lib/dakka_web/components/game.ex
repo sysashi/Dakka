@@ -172,7 +172,13 @@ defmodule DakkaWeb.GameComponents do
   defp item_mods(assigns) do
     ~H"""
     <section class="text-white flex flex-col">
-      <.item_mod :for={mod <- @implicit} mod={mod} type={:implicit} lang={@lang} />
+      <.item_mod
+        :for={mod <- @implicit}
+        mod={mod}
+        type={:implicit}
+        lang={@lang}
+        color="text-zinc-200"
+      />
       <.item_mod
         :for={mod <- @explicit}
         :if={Enum.any?(@explicit)}
