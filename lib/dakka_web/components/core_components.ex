@@ -360,7 +360,7 @@ defmodule DakkaWeb.CoreComponents do
         id={@id}
         name={@name}
         class={[
-          "block w-full border border-zinc-600 bg-zinc-700 text-zinc-50 shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm appearance-none p-1.5",
+          "block w-full border border-zinc-600 bg-zinc-700 text-zinc-50 shadow-sm focus:border-zinc-400 focus:ring-0 appearance-none p-1.5",
           @class!
         ]}
         multiple={@multiple}
