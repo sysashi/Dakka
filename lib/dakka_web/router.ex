@@ -22,7 +22,7 @@ defmodule DakkaWeb.Router do
   scope "/", DakkaWeb do
     pipe_through :browser
 
-    # get "/", PageController, :home
+    get "/credits", PageController, :credits
 
     live_session :home_page,
       on_mount: [

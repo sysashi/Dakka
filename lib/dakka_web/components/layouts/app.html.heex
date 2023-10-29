@@ -153,7 +153,7 @@
     <.flash_group flash={@flash} />
     <%= @inner_content %>
   </div>
-  <.modal :if={@scope.current_user_id && Phoenix.LiveView.connected?(@socket)} id="app-settings">
+  <.modal :if={@scope.current_user_id && assigns[:socket]} id="app-settings">
     <.live_component
       module={DakkaWeb.UserSettingsFormComponent}
       id="app-settings-form"
