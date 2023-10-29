@@ -21,6 +21,6 @@ defmodule Dakka.Utils.HoneycombSampler do
     # 2 # 50% of events will be sent
     # 3 # 33% of events will be sent
     # 4 # 25% of events will be sent
-    1
+    4
   end
 end
