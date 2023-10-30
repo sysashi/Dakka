@@ -105,6 +105,10 @@ defmodule DakkaWeb.Router do
       live "/inventory/list_item/:id", InventoryLive, :new_listing
       live "/inventory/edit_listing/:id", InventoryLive, :edit_listing
 
+      live "/characters", CharactersLive, :index
+      live "/characters/add", CharactersLive, :new_character
+      live "/characters/edit/:id", CharactersLive, :edit_character
+
       live "/offers", OffersLive, :index
       live "/trade/:id", TradeLive, :index
     end

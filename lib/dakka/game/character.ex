@@ -4,17 +4,22 @@ defmodule Dakka.Game.Character do
 
   alias Dakka.Accounts.User
 
+  @classes ~w(barbarian bard cleric druid fighter ranger rogue warlock wizard)a
+
   schema "users_game_characters" do
     field :name, :string
-    field :last_trade_at, :naive_datetime
-    field :removal_scheduled_at, :naive_datetime
+    field :class, Ecto.Enum, values: @classes
+    field :last_trade_at, :naive_datetime_usec
+    field :removal_scheduled_at, :utc_datetime_usec
 
     belongs_to :user, User
+
+    timestamps()
   end
 
   def changeset(character, attrs, opts \\ []) do
     character
-    |> cast(attrs, [:name, :last_trade_at, :removal_scheduled_at])
+    |> cast(attrs, [:name, :class])
     |> validate_required(:name)
     |> validate_length(:name, min: 1)
     |> maybe_validate_unique_name(opts)
@@ -28,5 +33,9 @@ defmodule Dakka.Game.Character do
     else
       changeset
     end
+  end
+
+  def class_options() do
+    Enum.map(@classes, &{String.capitalize("#{&1}"), &1})
   end
 end

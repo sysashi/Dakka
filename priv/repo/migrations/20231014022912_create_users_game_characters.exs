@@ -4,8 +4,9 @@ defmodule Dakka.Repo.Migrations.CreateUsersGameCharacters do
   def change do
     create table(:users_game_characters) do
       add :name, :varchar, null: false
-      add :last_trade_at, :naive_datetime
-      add :removal_scheduled_at, :naive_datetime
+      add :class, :varchar
+      add :last_trade_at, :naive_datetime_usec
+      add :removal_scheduled_at, :utc_datetime_usec
       add :user_id, references(:users, on_delete: :delete_all), null: false
 
       timestamps()

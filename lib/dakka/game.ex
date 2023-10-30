@@ -7,7 +7,10 @@ defmodule Dakka.Game do
 
   import Ecto.Query, warn: false
 
-  alias Dakka.Repo
+  alias Dakka.{
+    Repo,
+    Scope
+  }
 
   alias Ecto.{
           Changeset,
@@ -17,6 +20,7 @@ defmodule Dakka.Game do
 
   alias Dakka.Game.{
           Alias,
+          Character,
           Language,
           TranslationString,
           ItemMod,
@@ -228,5 +232,44 @@ defmodule Dakka.Game do
     |> order_by(:rarity_rank)
     |> Repo.all()
     |> Enum.map(&{String.capitalize(&1.slug), &1.slug})
+  end
+
+  ## User Game Characters
+
+  def list_user_characters(%Scope{} = scope) do
+    Character
+    |> where(user_id: ^scope.current_user_id)
+    |> order_by(desc: :inserted_at)
+    |> Repo.all()
+  end
+
+  def get_user_character!(%Scope{} = scope, id) do
+    Character
+    |> where(id: ^id)
+    |> where(user_id: ^scope.current_user_id)
+    |> Repo.one!()
+  end
+
+  def create_user_character(%Scope{} = scope, attrs) do
+    character = %Character{user_id: scope.current_user_id}
+
+    character
+    |> Character.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_user_character(%Scope{} = _scope, %Character{} = char, attrs) do
+    char
+    |> Character.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_user_character(%Scope{} = scope, char_id) do
+    char = get_user_character!(scope, char_id)
+    Repo.delete(char)
+  end
+
+  def change_user_character(character, attrs \\ %{}) do
+    Character.changeset(character, attrs, validate_name: false)
   end
 end
