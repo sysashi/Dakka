@@ -1,14 +1,13 @@
 defmodule DakkaWeb.GameComponents do
   use Phoenix.Component
+  use DakkaWeb, :verified_routes
 
   import DakkaWeb.CoreComponents
 
   alias Dakka.Accounts.UserSettings
 
-  @item_image_path "/images/item_base_icons"
-
-  def item_image_path(%{icon_path: icon_path}), do: "#{@item_image_path}/#{icon_path}"
-  def item_image_path(icon) when is_binary(icon), do: "#{@item_image_path}/#{icon}"
+  def item_image_path(%{icon_path: icon_path}), do: ~p"/images/item_base_icons/#{icon_path}"
+  def item_image_path(icon) when is_binary(icon), do: ~p"/images/item_base_icons/#{icon}"
 
   attr :amount, :integer, default: nil
 

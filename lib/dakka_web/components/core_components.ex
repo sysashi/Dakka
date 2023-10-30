@@ -15,6 +15,7 @@ defmodule DakkaWeb.CoreComponents do
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
   use Phoenix.Component
+  use DakkaWeb, :verified_routes
 
   alias Phoenix.LiveView.JS
   import DakkaWeb.Gettext
@@ -726,16 +727,16 @@ defmodule DakkaWeb.CoreComponents do
         @class,
         "text-[#ffd700] bg-current align-middle inline-block"
       ]}
-      style="
-      mask-image: url(/images/coins.svg);
+      style={"
+      mask-image: url(#{~p"/images/coins.svg"});
       mask-repeat: no-repeat;
       mask-size: contain;
       mask-position: center;
-      -webkit-mask-image: url(/images/coins.svg);
+      -webkit-mask-image: url(#{~p"/images/coins.svg"});
       -webkit-mask-repeat: no-repeat;
       -webkit-mask-size: contain;
       -webkit-mask-position: center;
-      "
+      "}
       {@rest}
     >
     </span>
@@ -752,16 +753,16 @@ defmodule DakkaWeb.CoreComponents do
         @class,
         "text-white bg-current align-middle inline-block"
       ]}
-      style="
-      mask-image: url(/images/skelly.svg);
+      style={"
+      mask-image: url(#{~p"/images/skelly.svg"});
       mask-repeat: no-repeat;
       mask-size: contain;
       mask-position: center;
-      -webkit-mask-image: url(/images/skelly.svg);
+      -webkit-mask-image: url(#{~p"/images/skelly.svg"});
       -webkit-mask-repeat: no-repeat;
       -webkit-mask-size: contain;
       -webkit-mask-position: center;
-      "
+      "}
       {@rest}
     >
     </span>
