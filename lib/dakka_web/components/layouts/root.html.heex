@@ -27,19 +27,14 @@
     <%= @inner_content %>
     <footer class="px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto">
-        <div class="flex items-center justify-center sm:justify-between border-t border-zinc-700 py-4 px-4 text-sm text-zinc-600 text-center flex-wrap">
+        <div class="flex flex-col gap-2 md:flex-row items-center justify-center md:justify-between border-t border-zinc-700 py-4 px-4 text-sm text-zinc-600 text-center flex-wrap">
           <span>Unofficial & experimental DnD Market.
             Not affiliated with IRONMACE Co., Ltd.</span>
-          <.link href={~p"/credits"} class="text-blue-500 underline"> Credits </.link>
           <span>Contact: <span class="">box[at]dakka.live</span></span>
-          <div class="flex flex-col">
-            <span>
-              Built with
-              <.link href="https://www.phoenixframework.org" class="text-blue-500 underline">
-                Phoenix LiveView
-              </.link>
-              by sysashi
-            </span>
+          <.link href={~p"/credits"} class="text-blue-500 hover:underline decoration-blue-500">
+            Credits
+          </.link>
+          <div class="flex flex-col justify-center w-full lg:w-auto">
             <span>© 2023 dakka.live</span>
           </div>
         </div>
