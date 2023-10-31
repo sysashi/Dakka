@@ -1,4 +1,4 @@
-defmodule Dakka.Game.Character do
+defmodule Dakka.Accounts.UserGameCharacter do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -21,6 +21,8 @@ defmodule Dakka.Game.Character do
     character
     |> cast(attrs, [:name, :class])
     |> validate_required(:name)
+    |> update_change(:name, &String.trim/1)
+    |> validate_format(:name, ~r/^\S+$/)
     |> validate_length(:name, min: 1)
     |> maybe_validate_unique_name(opts)
   end

@@ -2,6 +2,7 @@ defmodule Dakka.Market.Listing do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Dakka.Accounts.UserGameCharacter
   alias Dakka.Inventory.UserGameItem
   alias Dakka.Market.ListingOffer
 
@@ -19,15 +20,28 @@ defmodule Dakka.Market.Listing do
     has_one :seller, through: [:user_game_item, :user]
     has_many :offers, ListingOffer
 
+    # quick sell feature
+    field :quick_sell, :boolean, default: false
+    belongs_to :user_game_character, UserGameCharacter
+
     timestamps()
   end
 
   def changeset(listing, attrs \\ %{}) do
     listing
-    |> cast(attrs, [:price_gold, :price_golden_keys, :open_for_offers, :deleted_at, :relist])
+    |> cast(attrs, [
+      :price_gold,
+      :price_golden_keys,
+      :open_for_offers,
+      :deleted_at,
+      :quick_sell,
+      :user_game_character_id,
+      :relist
+    ])
     |> validate_required([:open_for_offers])
     |> validate_number(:price_gold, greater_than: 0)
     |> validate_number(:price_golden_keys, greater_than: 0)
+    |> validate_quick_sell()
     |> price_or_offers()
     |> maybe_relist()
     |> unique_constraint(:user_game_item_id,
@@ -42,6 +56,10 @@ defmodule Dakka.Market.Listing do
       name: :positive_price,
       message: "price must be positive"
     )
+    |> check_constraint(:quick_sell,
+      name: :market_listings_require_character_for_quick_sell,
+      message: "character must be selected"
+    )
   end
 
   def delete(listing) do
@@ -50,6 +68,17 @@ defmodule Dakka.Market.Listing do
 
   def mark_sold(listing) do
     change(listing, %{status: :sold})
+  end
+
+  def validate_character(changeset, scope) do
+    case fetch_change(changeset, :user_game_character_id) do
+      {:ok, char_id} ->
+        _char = Dakka.Accounts.get_user_character!(scope, char_id)
+        changeset
+
+      :error ->
+        changeset
+    end
   end
 
   def price_or_offers(changeset) do
@@ -73,6 +102,18 @@ defmodule Dakka.Market.Listing do
     case fetch_field(changeset, :relist) do
       {_, true} ->
         put_change(changeset, :status, :active)
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp validate_quick_sell(changeset) do
+    case fetch_change(changeset, :quick_sell) do
+      {:ok, true} ->
+        validate_required(changeset, :user_game_character_id,
+          message: "character must be selected"
+        )
 
       _ ->
         changeset

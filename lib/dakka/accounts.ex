@@ -7,6 +7,8 @@ defmodule Dakka.Accounts do
 
   import Ecto.Query, warn: false
 
+  alias Ecto.Multi
+
   alias Dakka.{Repo, Scope}
 
   alias Dakka.Accounts.{
@@ -14,7 +16,8 @@ defmodule Dakka.Accounts do
     UserToken,
     UserNotifier,
     UserSettings,
-    UserNotification
+    UserNotification,
+    UserGameCharacter
   }
 
   alias Dakka.Accounts.Events.UserSettingsUpdated
@@ -276,9 +279,9 @@ defmodule Dakka.Accounts do
       |> User.email_changeset(%{email: email})
       |> User.confirm_changeset()
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, changeset)
-    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, [context]))
+    Multi.new()
+    |> Multi.update(:user, changeset)
+    |> Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, [context]))
   end
 
   @doc ~S"""
@@ -329,9 +332,9 @@ defmodule Dakka.Accounts do
       |> User.password_changeset(attrs)
       |> User.validate_current_password(password)
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, changeset)
-    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
+    Multi.new()
+    |> Multi.update(:user, changeset)
+    |> Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
     |> Repo.transaction()
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
@@ -408,9 +411,9 @@ defmodule Dakka.Accounts do
   end
 
   defp confirm_user_multi(user) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, User.confirm_changeset(user))
-    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, ["confirm"]))
+    Multi.new()
+    |> Multi.update(:user, User.confirm_changeset(user))
+    |> Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, ["confirm"]))
   end
 
   ## Reset password
@@ -465,13 +468,84 @@ defmodule Dakka.Accounts do
 
   """
   def reset_user_password(user, attrs) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, User.password_changeset(user, attrs))
-    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
+    Multi.new()
+    |> Multi.update(:user, User.password_changeset(user, attrs))
+    |> Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
     |> Repo.transaction()
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+  ## User Game Characters
+
+  def list_user_characters(%Scope{} = scope) do
+    UserGameCharacter
+    |> where(user_id: ^scope.current_user_id)
+    |> order_by(desc: :inserted_at)
+    |> Repo.all()
+  end
+
+  def user_character_options(%Scope{} = scope) do
+    UserGameCharacter
+    |> where(user_id: ^scope.current_user_id)
+    |> order_by(desc: :inserted_at)
+    |> select([c], {fragment("format('%s%s', ?, ' (' || ? || ')')", c.name, c.class), c.id})
+    |> Repo.all()
+  end
+
+  def get_user_character!(%Scope{} = scope, id) do
+    UserGameCharacter
+    |> where(id: ^id)
+    |> where(user_id: ^scope.current_user_id)
+    |> Repo.one!()
+  end
+
+  def create_user_character(%Scope{} = scope, attrs) do
+    character = %UserGameCharacter{user_id: scope.current_user_id}
+
+    character
+    |> UserGameCharacter.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_user_character(%Scope{} = _scope, %UserGameCharacter{} = char, attrs) do
+    char
+    |> UserGameCharacter.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_user_character(%Scope{} = scope, char_id) do
+    char = get_user_character!(scope, char_id)
+
+    listings_query =
+      Dakka.Market.Listing
+      |> join(:inner, [l], s in assoc(l, :seller))
+      |> where([l], l.user_game_character_id == ^char_id)
+      |> where([l, s], s.id == ^scope.current_user_id)
+      |> select([l], l)
+
+    multi =
+      Multi.new()
+      |> Multi.update_all(:listings, listings_query, set: [quick_sell: false])
+      |> Multi.delete(:character, char)
+
+    case Repo.transaction(multi) do
+      {:ok, %{character: char, listings: {_, listings}}} ->
+        listings
+        |> Enum.map(&%Dakka.Market.Events.ListingUpdated{listing: &1})
+        |> tap(fn events -> Enum.each(events, &Dakka.Market.Public.broadcast(&1)) end)
+        |> tap(fn events -> Enum.each(events, &Dakka.Market.broadcast!(scope, &1)) end)
+
+        {:ok, char}
+
+      {:error, :character, changeset, _changes} ->
+        {:error, changeset}
+    end
+  end
+
+  def change_user_character(character, attrs \\ %{}) do
+    UserGameCharacter.changeset(character, attrs, validate_name: false)
   end
 end

@@ -7,7 +7,10 @@ defmodule Dakka.Market do
 
   import Ecto.Query
 
-  alias Ecto.Multi
+  alias Ecto.{
+    Changeset,
+    Multi
+  }
 
   alias Dakka.Repo
   alias Dakka.Scope
@@ -178,8 +181,11 @@ defmodule Dakka.Market do
     Listing.changeset(listing, attrs)
   end
 
-  def create_listing(listing, attrs) do
-    changeset = Listing.changeset(listing, attrs)
+  def create_listing(scope, listing, attrs) do
+    changeset =
+      listing
+      |> Listing.changeset(attrs)
+      |> Listing.validate_character(scope)
 
     case Repo.insert(changeset) do
       {:ok, listing} ->
@@ -203,8 +209,13 @@ defmodule Dakka.Market do
     end
   end
 
-  def edit_listing(listing, attrs) do
-    changeset = Listing.changeset(listing, attrs)
+  def edit_listing(scope, listing, attrs) do
+    listing = Repo.preload(listing, :user_game_character)
+
+    changeset =
+      listing
+      |> Listing.changeset(attrs)
+      |> Listing.validate_character(scope)
 
     prev_query =
       Listing
@@ -533,8 +544,8 @@ defmodule Dakka.Market do
   defp maybe_validate_buyout_offer(_, _, _), do: :ok
 
   defp buyout_offer?(listing, changeset) do
-    gold_offer = Ecto.Changeset.get_change(changeset, :offer_gold_amount)
-    golden_keys_offer = Ecto.Changeset.get_change(changeset, :offer_golden_keys_amount)
+    gold_offer = Changeset.get_change(changeset, :offer_gold_amount)
+    golden_keys_offer = Changeset.get_change(changeset, :offer_golden_keys_amount)
 
     listing.price_gold == gold_offer &&
       listing.price_golden_keys == golden_keys_offer
@@ -867,9 +878,11 @@ defmodule Dakka.Market do
   ## Utils
 
   def generate_random_listing(user) do
+    scope = Scope.for_user(user)
+
     item_changeset =
       Inventory.generate_random_item()
-      |> Ecto.Changeset.put_assoc(:user, user)
+      |> Changeset.put_assoc(:user, user)
 
     Repo.transaction(fn ->
       user_item = Repo.insert!(item_changeset)
@@ -894,7 +907,7 @@ defmodule Dakka.Market do
           |> Enum.reduce(%{open_for_offers: false}, &Map.merge(&2, &1))
         end
 
-      create_listing(listing, listing_params)
+      create_listing(scope, listing, listing_params)
     end)
   end
 end

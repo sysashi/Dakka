@@ -255,7 +255,7 @@ defmodule DakkaWeb.CoreComponents do
   def button_style(:secondary),
     do: "bg-zinc-800 border-zinc-700 hover:bg-green-900 text-zinc-100"
 
-  def button_style(:extra), do: "bg-blue-700 hover:bg-blue-800 border-blue-500 text-white"
+  def button_style(:extra), do: "bg-blue-900 hover:bg-blue-800 border-blue-700 text-zinc-100"
 
   def button_size(:sm), do: "py-1 px-2"
   def button_size(:md), do: "py-2 px-3"

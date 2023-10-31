@@ -23,6 +23,26 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
 
         <.input type="checkbox" field={@form[:open_for_offers]} label="Open for Offers" />
 
+        <div :if={@quick_sell_enabled} class="flex gap-4 items-center">
+          <div class="basis-1/3">
+            <.input type="checkbox" field={@form[:quick_sell]} label="Quick Sell" />
+          </div>
+
+          <div :if={flag(@form[:quick_sell])} class="basis-2/3">
+            <.input
+              type="select"
+              field={@form[:user_game_character_id]}
+              options={Dakka.Accounts.user_character_options(@scope)}
+            />
+            <.link
+              class="text-sm text-zinc-200 hover:underline"
+              patch={~p"/characters/add?return_to=#{@current_path}"}
+            >
+              Add new character
+            </.link>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center flex-wrap">
           <.button phx-disable-with="Saving...">
             Save Listing
@@ -133,9 +153,9 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
   end
 
   defp save_listing(socket, :new_listing, params) do
-    listing = socket.assigns.listing
+    %{scope: scope, listing: listing} = socket.assigns
 
-    case Market.create_listing(listing, params) do
+    case Market.create_listing(scope, listing, params) do
       {:ok, _listing} ->
         socket =
           socket
@@ -150,9 +170,9 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
   end
 
   defp save_listing(socket, :edit_listing, params) do
-    listing = socket.assigns.listing
+    %{scope: scope, listing: listing} = socket.assigns
 
-    case Market.edit_listing(listing, params) do
+    case Market.edit_listing(scope, listing, params) do
       {:ok, _listing} ->
         socket =
           socket
@@ -168,5 +188,9 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
+  end
+
+  defp flag(field) do
+    Phoenix.HTML.Form.normalize_value("checkbox", field.value)
   end
 end

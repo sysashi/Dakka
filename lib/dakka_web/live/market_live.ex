@@ -138,9 +138,9 @@ defmodule DakkaWeb.MarketLive do
             </:header>
             <:actions>
               <div
-                :if={@scope.current_user_id && listing.status == :active}
+                :if={listing.status == :active}
                 class={[
-                  "flex items-center gap-2 mt-2 group-hover:bg-blue-700"
+                  "flex items-center gap-2 mt-2 group-hover:bg-blue-700 flex-wrap"
                 ]}
               >
                 <%= case listing.offers do %>
@@ -164,7 +164,16 @@ defmodule DakkaWeb.MarketLive do
                     </.link>
                   <% _ -> %>
                     <.button
-                      :if={price_set?(listing)}
+                      :if={@online_sellers[listing.user_game_item.user_id] && listing.quick_sell}
+                      class="listing-seller-status-#{listing.user_game_item.user_id}"
+                      size={:sm}
+                      style={:extra}
+                      phx-click={JS.push("create-offer", value: %{id: listing.id})}
+                    >
+                      <.coins class="h-5 w-5 mr-1" /> Quick Buy
+                    </.button>
+                    <.button
+                      :if={@scope.current_user_id && price_set?(listing)}
                       size={:sm}
                       style={:secondary}
                       phx-click={JS.push("create-offer", value: %{id: listing.id})}
@@ -172,7 +181,7 @@ defmodule DakkaWeb.MarketLive do
                       <.coins class="h-5 w-5 mr-1" /> Buy
                     </.button>
                     <.link
-                      :if={listing.open_for_offers}
+                      :if={@scope.current_user_id && listing.open_for_offers}
                       patch={~p"/market/offer/#{listing.id}"}
                       class={[
                         "font-semibold text-sm px-2 py-1 bg-zinc-800 border border-zinc-700 inline-flex self-stretch items-center",
@@ -208,6 +217,7 @@ defmodule DakkaWeb.MarketLive do
         offer={@offer}
         listing_id={@listing_id}
         patch={~p"/market"}
+        quick_sell_enabled={false}
       />
     </.modal>
     """

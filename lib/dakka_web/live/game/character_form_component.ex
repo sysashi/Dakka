@@ -1,7 +1,8 @@
 defmodule DakkaWeb.GameLive.CharacterFormComponent do
   use DakkaWeb, :live_component
 
-  alias Dakka.Game
+  alias Dakka.Accounts
+  alias Dakka.Accounts.UserGameCharacter
 
   @impl true
   def render(assigns) do
@@ -19,7 +20,7 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
           type="select"
           field={@form[:class]}
           label="Class (optional)"
-          options={Game.Character.class_options()}
+          options={UserGameCharacter.class_options()}
           prompt="(empty)"
         />
         <.button type="submit">Save</.button>
@@ -30,7 +31,7 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
 
   @impl true
   def update(%{character: char} = assigns, socket) do
-    changeset = Game.change_user_character(char)
+    changeset = Accounts.change_user_character(char)
 
     socket =
       socket
@@ -46,7 +47,7 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
 
     changeset =
       char
-      |> Game.change_user_character(params)
+      |> Accounts.change_user_character(params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -57,12 +58,12 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
   end
 
   defp save_character(socket, :new_character, params) do
-    case Game.create_user_character(socket.assigns.scope, params) do
+    case Accounts.create_user_character(socket.assigns.scope, params) do
       {:ok, character} ->
         socket =
           socket
           |> put_flash(:info, "Character Created")
-          |> push_patch(to: socket.assigns.patch)
+          |> return_to_or_patch()
 
         send(self(), {:new_character, character})
 
@@ -74,7 +75,7 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
   end
 
   defp save_character(socket, :edit_character, params) do
-    case Game.update_user_character(socket.assigns.scope, socket.assigns.character, params) do
+    case Accounts.update_user_character(socket.assigns.scope, socket.assigns.character, params) do
       {:ok, character} ->
         socket =
           socket
@@ -92,5 +93,13 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset, as: :character))
+  end
+
+  defp return_to_or_patch(socket) do
+    if return_to = socket.assigns.return_to do
+      push_navigate(socket, to: return_to)
+    else
+      push_patch(socket, to: socket.assigns.patch)
+    end
   end
 end

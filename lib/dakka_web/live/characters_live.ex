@@ -1,7 +1,8 @@
 defmodule DakkaWeb.CharactersLive do
   use DakkaWeb, :live_view
 
-  alias Dakka.Game
+  alias Dakka.Accounts
+  alias Dakka.Accounts.UserGameCharacter
 
   def render(assigns) do
     ~H"""
@@ -51,6 +52,7 @@ defmodule DakkaWeb.CharactersLive do
         title={@page_title}
         action={@live_action}
         patch={~p"/characters"}
+        return_to={@return_to}
         character={@character}
       />
     </.modal>
@@ -58,7 +60,7 @@ defmodule DakkaWeb.CharactersLive do
   end
 
   def mount(_params, _session, socket) do
-    characters = Game.list_user_characters(socket.assigns.scope)
+    characters = Accounts.list_user_characters(socket.assigns.scope)
 
     socket =
       socket
@@ -68,11 +70,16 @@ defmodule DakkaWeb.CharactersLive do
   end
 
   def handle_params(params, _uri, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    socket =
+      socket
+      |> assign(:return_to, params["return_to"])
+      |> apply_action(socket.assigns.live_action, params)
+
+    {:noreply, socket}
   end
 
   def handle_event("delete-character", %{"id" => id}, socket) do
-    case Game.delete_user_character(socket.assigns.scope, id) do
+    case Accounts.delete_user_character(socket.assigns.scope, id) do
       {:ok, char} ->
         socket =
           socket
@@ -111,7 +118,7 @@ defmodule DakkaWeb.CharactersLive do
   defp apply_action(socket, :new_character, _params) do
     socket
     |> assign(:page_title, "Add Character")
-    |> assign(:character, %Game.Character{})
+    |> assign(:character, %UserGameCharacter{})
   end
 
   defp apply_action(socket, :edit_character, %{"id" => id}) do
@@ -119,7 +126,7 @@ defmodule DakkaWeb.CharactersLive do
 
     socket
     |> assign(:page_title, "Edit Character")
-    |> assign(:character, Game.get_user_character!(scope, id))
+    |> assign(:character, Accounts.get_user_character!(scope, id))
   end
 
   defp format_timestamp(ts) do

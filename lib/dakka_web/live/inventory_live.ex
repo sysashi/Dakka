@@ -52,7 +52,7 @@ defmodule DakkaWeb.InventoryLive do
                 :if={!item.listing}
                 size={:sm}
                 style={:secondary}
-                phx-click={JS.patch(~p"/inventory/list_item/#{item.id}")}
+                phx-click={JS.patch(~p"/inventory/list_item/#{item}")}
               >
                 List on the Market
               </.button>
@@ -87,6 +87,8 @@ defmodule DakkaWeb.InventoryLive do
         action={@live_action}
         listing={@listing}
         patch={~p"/inventory"}
+        current_path={@current_path}
+        quick_sell_enabled={false}
       />
     </.modal>
     """
@@ -134,8 +136,15 @@ defmodule DakkaWeb.InventoryLive do
     {:ok, socket}
   end
 
-  def handle_params(params, _uri, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_params(params, uri, socket) do
+    uri = URI.new!(uri)
+
+    socket =
+      socket
+      |> assign(:current_path, uri.path)
+      |> apply_action(socket.assigns.live_action, params)
+
+    {:noreply, socket}
   end
 
   def handle_event("delete-item", %{"item_id" => item_id}, socket) do
@@ -264,5 +273,15 @@ defmodule DakkaWeb.InventoryLive do
     socket
     |> push_event("highlight", %{id: "items-#{item.id}"})
     |> stream_delete(:items, item)
+  end
+
+  defp modal_path(action, item) do
+    case action do
+      :new_listing ->
+        ~p"/inventory/list_item/#{item}"
+
+      :edit_listing ->
+        ~p"/inventory/edit_listing/#{item}"
+    end
   end
 end
