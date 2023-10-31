@@ -8,7 +8,6 @@ defmodule Dakka.Repo.Migrations.CreateMarketListings do
       add :price_golden_keys, :integer
       add :open_for_offers, :boolean, default: false, null: false
       add :status, :varchar, null: false, default: "active"
-      add :expires_at, :utc_datetime
       add :deleted_at, :naive_datetime_usec
 
       timestamps()
@@ -39,17 +38,18 @@ defmodule Dakka.Repo.Migrations.CreateMarketListings do
 
     create table(:market_listings_offers) do
       add :user_id, references(:users, on_delete: :delete_all), null: false
-      add :listing_id, references(:market_listings, on_delete: :restrict), null: false
+      add :listing_id, references(:market_listings, on_delete: :delete_all), null: false
       add :offer_gold_amount, :integer
       add :offer_golden_keys_amount, :integer
-      add :status, :varchar, null: false, default: "created"
-      add :expires_at, :utc_datetime
+      add :status, :varchar, null: false, default: "active"
 
       timestamps()
     end
 
-    create index(:market_listings_offers, [:user_id, :status])
-    create index(:market_listings_offers, [:listing_id, :inserted_at])
+    create index(:market_listings_offers, [:status])
+    create index(:market_listings_offers, [:user_id])
+    create index(:market_listings_offers, [:inserted_at])
+    create index(:market_listings_offers, [:listing_id])
 
     create unique_index(:market_listings_offers, [:user_id, :listing_id],
              name: :market_listings_offers_one_active,

@@ -47,8 +47,9 @@ defmodule Dakka.Repo.Migrations.CreateGameItems do
       add :min_value, :integer
     end
 
-    create constraint(:game_item_mods, :min_lt_or_eq_max, check: ~s|min_value <= max_value|)
+    create index(:game_item_mods, [:value_type])
     create unique_index(:game_item_mods, [:slug])
+    create constraint(:game_item_mods, :min_lt_or_eq_max, check: ~s|min_value <= max_value|)
 
     # Enum for item mod values
     create table(:game_item_mods_values) do
@@ -62,7 +63,6 @@ defmodule Dakka.Repo.Migrations.CreateGameItems do
 
     # Base Items
     create table(:game_item_bases) do
-      # TODO add dimensions x,y
       add :container, :boolean, default: false, null: false
       add :min_capacity, :integer, default: 0
       add :max_capacity, :integer
@@ -106,7 +106,9 @@ defmodule Dakka.Repo.Migrations.CreateGameItems do
       add :item_base_id, references(:game_item_bases, on_delete: :delete_all), null: false
     end
 
-    create index(:game_item_bases_mods, [:item_base_id, :item_mod_id])
+    create index(:game_item_bases_mods, [:mod_type])
+    create index(:game_item_bases_mods, [:item_mod_id])
+    create index(:game_item_bases_mods, [:item_base_id, :order])
 
     create constraint(:game_item_bases_mods, :min_value_lt_or_eq_max_value,
              check: ~s|min_value <= max_value|
@@ -134,7 +136,6 @@ defmodule Dakka.Repo.Migrations.CreateGameItems do
       add :item_mod_value_id, references(:game_item_mods_values, on_delete: :delete_all)
     end
 
-    # TODO non null index on item_base_id
     for column <- ~w(key value item_base_id item_mod_id item_mod_value_id)a do
       create index(:game_translation_strings, [column])
     end
