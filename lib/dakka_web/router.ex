@@ -2,6 +2,7 @@ defmodule DakkaWeb.Router do
   use DakkaWeb, :router
 
   import DakkaWeb.UserAuth
+  import DakkaWeb.Hooks.OtelAttrs, only: [otel_attrs: 2]
 
   alias DakkaWeb.Hooks
 
@@ -13,6 +14,7 @@ defmodule DakkaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug :otel_attrs
   end
 
   pipeline :api do
@@ -27,6 +29,7 @@ defmodule DakkaWeb.Router do
     live_session :home_page,
       on_mount: [
         {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
+        Hooks.OtelAttrs,
         Hooks.Scope,
         Hooks.Nav,
         {Hooks.User, :app_settings},
@@ -86,6 +89,7 @@ defmodule DakkaWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [
         {DakkaWeb.UserAuth, :ensure_authenticated},
+        Hooks.OtelAttrs,
         Hooks.Scope,
         Hooks.Nav,
         {Hooks.User, :app_settings},
@@ -122,6 +126,7 @@ defmodule DakkaWeb.Router do
     live_session :current_user,
       on_mount: [
         {DakkaWeb.UserAuth, :mount_current_user},
+        Hooks.OtelAttrs,
         Hooks.Scope,
         Hooks.Nav,
         {Hooks.User, :notifications}

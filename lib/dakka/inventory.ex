@@ -11,6 +11,8 @@ defmodule Dakka.Inventory do
   alias Ecto.Changeset
   alias Ecto.Multi
 
+  require OpenTelemetry.Tracer
+
   ## Pusub
 
   @pubsub Dakka.PubSub
@@ -87,7 +89,9 @@ defmodule Dakka.Inventory do
   end
 
   def group_strings(item) do
-    Game.group_translation_strings(item, @user_item_strings_paths)
+    OpenTelemetry.Tracer.with_span :group_strings do
+      Game.group_translation_strings(item, @user_item_strings_paths)
+    end
   end
 
   def item_preloads() do
