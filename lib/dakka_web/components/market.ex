@@ -2,6 +2,7 @@ defmodule DakkaWeb.MarketComponents do
   use Phoenix.Component
 
   import DakkaWeb.GameComponents
+  import DakkaWeb.CoreComponents, only: [icon: 1]
 
   alias Dakka.Accounts.UserSettings.Display
 
@@ -33,9 +34,10 @@ defmodule DakkaWeb.MarketComponents do
           </div>
           <div
             :if={@listing.open_for_offers}
-            class="bg-zinc-800 border border-zinc-700 px-2 text-left leading-[70%] py-2"
+            class="bg-zinc-800 border border-zinc-700 px-2 text-center leading-[60%] py-2 inline-flex flex-col items-center"
           >
-            <span class="text-[12px] font-semibold capitalize text-sky-300">
+            <.icon name="custom-locked-chest" class="w-8 h-8 mb-[2px] text-rose-700" />
+            <span class="text-[8px] font-semibold capitalize text-zinc-300">
               open for offers
             </span>
           </div>

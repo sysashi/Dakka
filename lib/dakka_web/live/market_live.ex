@@ -170,7 +170,7 @@ defmodule DakkaWeb.MarketLive do
                       style={:extra}
                       phx-click={JS.push("create-offer", value: %{id: listing.id})}
                     >
-                      <.coins class="h-5 w-5 mr-1" /> Quick Buy
+                      <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Quick Buy
                     </.button>
                     <.button
                       :if={@scope.current_user_id && price_set?(listing)}
@@ -178,7 +178,7 @@ defmodule DakkaWeb.MarketLive do
                       style={:secondary}
                       phx-click={JS.push("create-offer", value: %{id: listing.id})}
                     >
-                      <.coins class="h-5 w-5 mr-1" /> Buy
+                      <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Buy
                     </.button>
                     <.link
                       :if={@scope.current_user_id && listing.open_for_offers}
@@ -188,7 +188,8 @@ defmodule DakkaWeb.MarketLive do
                         "hover:bg-green-900 text-zinc-100 transition-colors duration-100"
                       ]}
                     >
-                      <.icon name="hero-scale" class="text-blue-400 mr-1 h-5 w-5" /> Custom Offer
+                      <.icon name="custom-locked-chest" class="w-5 h-5 mr-1 mb-[2px] text-rose-700" />
+                      Custom Offer
                     </.link>
                 <% end %>
               </div>
@@ -198,9 +199,9 @@ defmodule DakkaWeb.MarketLive do
       </div>
     </section>
     <div :if={@end_of_timeline?} class="mt-5 text-xl text-zinc-500 italic text-center">
-      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+      <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
       <span>Nothing left</span>
-      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+      <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
     </div>
     <.modal
       :if={@live_action in [:new_offer]}
@@ -217,7 +218,6 @@ defmodule DakkaWeb.MarketLive do
         offer={@offer}
         listing_id={@listing_id}
         patch={~p"/market"}
-        quick_sell_enabled={false}
       />
     </.modal>
     """

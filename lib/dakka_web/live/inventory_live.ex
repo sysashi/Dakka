@@ -69,9 +69,9 @@ defmodule DakkaWeb.InventoryLive do
       </section>
     </article>
     <div :if={@end_of_timeline? && @page > 1} class="mt-5 text-xl text-zinc-500 italic text-center">
-      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+      <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
       <span>Nothing left</span>
-      <.skelly class="rotateZ w-10 h-10 text-zinc-500" />
+      <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
     </div>
     <.modal
       :if={@live_action in [:new_listing, :edit_listing]}

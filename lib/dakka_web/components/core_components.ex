@@ -635,10 +635,36 @@ defmodule DakkaWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :string, default: nil
+  attr :rest, :global
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
+    """
+  end
+
+  def icon(%{name: "custom-" <> name} = assigns) do
+    assigns = assign(assigns, :custom_name, name <> ".svg")
+
+    ~H"""
+    <span
+      class={[
+        @class,
+        "bg-current align-middle inline-block"
+      ]}
+      style={"
+      mask-image: url(#{~p"/images/#{@custom_name}"});
+      mask-repeat: no-repeat;
+      mask-size: contain;
+      mask-position: center;
+      -webkit-mask-image: url(#{~p"/images/#{@custom_name}"});
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      -webkit-mask-position: center;
+      "}
+      {@rest}
+    >
+    </span>
     """
   end
 
@@ -715,57 +741,5 @@ defmodule DakkaWeb.CoreComponents do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
-  end
-
-  attr :rest, :global
-  attr :class, :any, default: nil
-
-  def coins(assigns) do
-    ~H"""
-    <span
-      class={[
-        @class,
-        "text-[#ffd700] bg-current align-middle inline-block"
-      ]}
-      style={"
-      mask-image: url(#{~p"/images/coins.svg"});
-      mask-repeat: no-repeat;
-      mask-size: contain;
-      mask-position: center;
-      -webkit-mask-image: url(#{~p"/images/coins.svg"});
-      -webkit-mask-repeat: no-repeat;
-      -webkit-mask-size: contain;
-      -webkit-mask-position: center;
-      "}
-      {@rest}
-    >
-    </span>
-    """
-  end
-
-  attr :rest, :global
-  attr :class, :any, default: nil
-
-  def skelly(assigns) do
-    ~H"""
-    <span
-      class={[
-        @class,
-        "text-white bg-current align-middle inline-block"
-      ]}
-      style={"
-      mask-image: url(#{~p"/images/skelly.svg"});
-      mask-repeat: no-repeat;
-      mask-size: contain;
-      mask-position: center;
-      -webkit-mask-image: url(#{~p"/images/skelly.svg"});
-      -webkit-mask-repeat: no-repeat;
-      -webkit-mask-size: contain;
-      -webkit-mask-position: center;
-      "}
-      {@rest}
-    >
-    </span>
-    """
   end
 end
