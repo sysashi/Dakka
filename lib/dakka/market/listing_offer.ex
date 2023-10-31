@@ -20,7 +20,6 @@ defmodule Dakka.Market.ListingOffer do
   schema "market_listings_offers" do
     field :offer_gold_amount, :integer
     field :offer_golden_keys_amount, :integer
-    field :expires_at, :utc_datetime
 
     field :status, Ecto.Enum, values: @statuses, default: :active
 

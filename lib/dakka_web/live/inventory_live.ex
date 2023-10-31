@@ -274,14 +274,4 @@ defmodule DakkaWeb.InventoryLive do
     |> push_event("highlight", %{id: "items-#{item.id}"})
     |> stream_delete(:items, item)
   end
-
-  defp modal_path(action, item) do
-    case action do
-      :new_listing ->
-        ~p"/inventory/list_item/#{item}"
-
-      :edit_listing ->
-        ~p"/inventory/edit_listing/#{item}"
-    end
-  end
 end

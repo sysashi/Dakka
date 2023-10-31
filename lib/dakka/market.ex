@@ -750,7 +750,6 @@ defmodule Dakka.Market do
     mods_query =
       from(um in Dakka.Inventory.UserGameItemMod, as: :user_mod)
       |> join(:inner, [um], m in assoc(um, :item_mod), as: :mod)
-      |> join(:left, [mod: m], v in assoc(m, :values), as: :mod_values)
 
     mods_query =
       Enum.reduce(filters, mods_query, fn filter, query ->
@@ -784,15 +783,6 @@ defmodule Dakka.Market do
 
   defp apply_filter({:rarities, rarities}) do
     dynamic([rarity: rarity], rarity.slug in ^rarities)
-  end
-
-  defp apply_filter({:property, slug, :in, value}) do
-    dynamic(
-      [user_mod: um, mod: m, mod_values: values],
-      m.slug == ^slug and
-        um.mod_type == ^:property and
-        values.slug in ^[value]
-    )
   end
 
   defp apply_filter({mod_type, slug, op, value}) when mod_type in [:implicit, :explicit] do

@@ -10,7 +10,6 @@ defmodule Dakka.Market.Listing do
     field :price_gold, :integer
     field :price_golden_keys, :integer
     field :open_for_offers, :boolean, default: false
-    field :expires_at, :utc_datetime
     field :status, Ecto.Enum, values: [:active, :sold, :expired], default: :active
     field :deleted_at, :naive_datetime_usec
 
