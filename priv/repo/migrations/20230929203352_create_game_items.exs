@@ -148,7 +148,7 @@ defmodule Dakka.Repo.Migrations.CreateGameItems do
                :item_mod_id,
                :item_mod_value_id
              ],
-             name: :unique_game_translation_string,
+             name: :game_translation_strings_entity_index,
              nulls_distinct: false
            )
 

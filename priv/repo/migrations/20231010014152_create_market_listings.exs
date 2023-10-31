@@ -48,16 +48,16 @@ defmodule Dakka.Repo.Migrations.CreateMarketListings do
       timestamps()
     end
 
-    create index(:market_listings_offers, [:user_id])
+    create index(:market_listings_offers, [:user_id, :status])
     create index(:market_listings_offers, [:listing_id, :inserted_at])
 
     create unique_index(:market_listings_offers, [:user_id, :listing_id],
-             name: :one_active_listing_offer,
+             name: :market_listings_offers_one_active,
              where: "status = 'active'"
            )
 
     create unique_index(:market_listings_offers, [:user_id, :listing_id],
-             name: :one_accepted_listing_offer,
+             name: :market_listings_offers_one_accepted,
              where: "status = 'accepted_by_seller'"
            )
 

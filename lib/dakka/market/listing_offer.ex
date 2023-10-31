@@ -36,11 +36,11 @@ defmodule Dakka.Market.ListingOffer do
     |> validate_required([])
     |> check_constraint(:offer_gold_amount, name: :offer_amount_set, message: "empty offer")
     |> unique_constraint(:listing,
-      name: :one_active_listing_offer,
+      name: :market_listings_offers_one_active,
       message: "active offer already exists for this listing"
     )
     |> unique_constraint(:listing,
-      name: :one_accepted_listing_offer,
+      name: :market_listings_offers_one_accepted,
       message: "accepted offer already exists for this listing"
     )
   end
