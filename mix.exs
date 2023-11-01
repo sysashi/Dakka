@@ -40,10 +40,10 @@ defmodule Dakka.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", branch: "main"},
+      {:phoenix_live_view,
+       github: "phoenixframework/phoenix_live_view", branch: "main", override: true},
       # {:phoenix_live_view, "~> 0.20.1"},
       {:floki, ">= 0.30.0", only: :test},
-      # {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.12"},
@@ -54,6 +54,10 @@ defmodule Dakka.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:ex_cldr_dates_times, "~> 2.0"},
+
+      # LV dashboard
+      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:ecto_psql_extras, "~> 0.6"},
 
       # oban
       {:oban, "~> 2.16"},
@@ -77,7 +81,6 @@ defmodule Dakka.MixProject do
       {:sentry, "~> 9.1"},
 
       # extras
-      {:ecto_psql_extras, "~> 0.6"},
       {:slugify, "~> 1.3"},
       {:recase, "~> 0.5"}
     ]

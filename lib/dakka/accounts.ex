@@ -124,6 +124,14 @@ defmodule Dakka.Accounts do
     |> Map.new()
   end
 
+  def measure_users() do
+    :telemetry.execute([:dakka, :users], %{total: users_count()}, %{})
+  end
+
+  def users_count() do
+    Repo.aggregate(User, :count)
+  end
+
   ## Database getters
 
   @doc """

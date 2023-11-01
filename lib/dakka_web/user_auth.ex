@@ -230,6 +230,20 @@ defmodule DakkaWeb.UserAuth do
     end
   end
 
+  def require_admin_user(conn, _opts) do
+    user = conn.assigns.current_user
+    admin_usernames = Application.fetch_env!(:dakka, :admin_usernames)
+
+    if user.username in admin_usernames do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must be admin to access this page.")
+      |> redirect(to: ~p"/")
+      |> halt()
+    end
+  end
+
   defp put_token_in_session(conn, token) do
     conn
     |> put_session(:user_token, token)

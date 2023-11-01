@@ -11,10 +11,10 @@ defmodule Dakka.Application do
     Logger.add_handlers(:dakka)
 
     children = [
-      # Start the Telemetry supervisor
-      DakkaWeb.Telemetry,
       # Start the Ecto repository
       Dakka.Repo,
+      # Start the Telemetry supervisor
+      DakkaWeb.Telemetry,
       # Start Oban
       {Oban, Application.fetch_env!(:dakka, Oban)},
       # Simple DNS cluster

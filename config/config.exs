@@ -97,4 +97,6 @@ config :dakka, Oban,
   plugins: [Oban.Plugins.Pruner],
   queues: [default: 10]
 
+config :dakka, :admin_usernames, []
+
 import_config "#{config_env()}.exs"

@@ -52,14 +52,22 @@ defmodule DakkaWeb.Router do
     # you can use Plug.BasicAuth to set up some basic authentication
     # as long as you are also using SSL (which you should anyway).
 
-    # import Phoenix.LiveDashboard.Router
-
     scope "/dev" do
       pipe_through :browser
 
-      # live_dashboard "/dashboard", metrics: DakkaWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  scope "/dashboard" do
+    import Phoenix.LiveDashboard.Router
+
+    pipe_through [:browser, :require_authenticated_user, :require_admin_user]
+
+    live_dashboard "/",
+      metrics: DakkaWeb.Telemetry,
+      ecto_repos: [Dakka.Repo],
+      ecto_psql_extras_options: [long_running_queries: [threshold: "200 milliseconds"]]
   end
 
   ## Authentication routes
