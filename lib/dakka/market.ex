@@ -696,6 +696,8 @@ defmodule Dakka.Market do
     |> Repo.exists?()
   end
 
+  # TODO if only rarties are passed as filters then query takes
+  # giga time
   defp apply_listing_filters(query, filters) do
     {simple_filters, mods} =
       Enum.split_with(filters, fn filter ->
@@ -808,14 +810,6 @@ defmodule Dakka.Market do
       dynamic
     end
   end
-
-  # defp comp(named_binding, field, _op, value) do
-  #   if named_binding do
-  #     dynamic([{^named_binding, l}], field(l, ^field) < ^value)
-  #   else
-  #     dynamic([q], field(q, ^field) < ^value)
-  #   end
-  # end
 
   defp comp(named_binding, field, :lt, value) do
     dynamic([{^named_binding, l}], field(l, ^field) < ^value)
