@@ -6,7 +6,8 @@ defmodule Dakka.ItemFilters do
 
   @primary_key false
 
-  # ~w(junk poor common uncommon rare epic legendary unique)
+  @all_rarities ~w(junk poor common uncommon rare epic legendary unique)
+  @all_rarities_set MapSet.new(@all_rarities)
 
   embedded_schema do
     field :item_base, :string
@@ -155,6 +156,12 @@ defmodule Dakka.ItemFilters do
       %PropMod{} = mod ->
         {type, mod.slug, :eq, mod.prop}
     end)
+  end
+
+  defp discard_filter?({:rarities, rarities}) when is_list(rarities) do
+    rarities
+    |> MapSet.new()
+    |> MapSet.equal?(@all_rarities_set)
   end
 
   defp discard_filter?({_, _, _, nil}), do: true
