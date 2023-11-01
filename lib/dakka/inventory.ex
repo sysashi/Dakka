@@ -69,18 +69,23 @@ defmodule Dakka.Inventory do
   end
 
   def list_user_items(%Scope{} = scope, opts \\ []) do
+    scope
+    |> user_items_query(opts)
+    |> Repo.all()
+    |> Enum.map(&group_strings/1)
+  end
+
+  def user_items_query(scope, opts) do
     limit = Keyword.get(opts, :limit, 20)
     offset = Keyword.get(opts, :offset, 0)
 
     scope
     |> user_item_query()
-    |> order_by(asc: :position, desc: :inserted_at)
+    |> order_by(desc: :inserted_at)
     |> preload(^item_preloads())
     |> preload(:listing)
     |> limit(^limit)
     |> offset(^offset)
-    |> Repo.all()
-    |> Enum.map(&Game.group_translation_strings(&1, @user_item_strings_paths))
   end
 
   def user_item_preload_query() do
