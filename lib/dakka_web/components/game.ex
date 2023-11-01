@@ -15,7 +15,13 @@ defmodule DakkaWeb.GameComponents do
     ~H"""
     <div class="flex flex-col items-center">
       <div class="max-w-[48px]">
-        <img class="h-auto w-full" src={item_image_path("misc_currency_gold_coins.png")} />
+        <img
+          alt="currency coins"
+          height="36"
+          width="36"
+          class="h-auto w-full"
+          src={item_image_path("misc_currency_gold_coins.webp")}
+        />
       </div>
       <span :if={@amount} class="text-white font-semibold break-all"><%= @amount %></span>
     </div>
@@ -28,7 +34,13 @@ defmodule DakkaWeb.GameComponents do
     ~H"""
     <div class="flex flex-col items-center">
       <div class="max-w-[48px]">
-        <img src={item_image_path("utility_golden_key.png")} />
+        <img
+          height="180"
+          width="90"
+          class="h-auto w-full"
+          alt="currency golden key"
+          src={item_image_path("utility_golden_key.webp")}
+        />
       </div>
       <span :if={@amount} class="text-white font-semibold break-all"><%= @amount %></span>
     </div>
@@ -95,7 +107,8 @@ defmodule DakkaWeb.GameComponents do
   attr :display_settings, :any, default: %UserSettings.Display{}
 
   def item_card(assigns) do
-    assigns = assign_new(assigns, :item_base, fn -> item_base(assigns.item) end)
+    assigns =
+      assign_new(assigns, :item_base, fn -> item_base(assigns.item) end)
 
     ~H"""
     <article class={
@@ -112,11 +125,17 @@ defmodule DakkaWeb.GameComponents do
 
       <div :if={@display_settings.show_item_icon} class="flex justify-center">
         <%= if @item_base.icon_path do %>
-          <div class="inline-flex max-h-[140px]">
-            <img class="h-auto w-full object-contain" src={item_image_path(@item_base)} />
+          <div class="inline-flex max-h-[140px] mt-2">
+            <img
+              height="140"
+              width="90"
+              alt={string(@item_base, :name, @lang)}
+              class="h-auto w-full object-contain drop-shadow-[5px_5px_5px_rgba(22,22,24,0.80)]"
+              src={item_image_path(@item_base)}
+            />
           </div>
         <% else %>
-          <div class="justify-center items-center flex flex-col">
+          <div class="justify-center items-center flex flex-col mt-2">
             <.icon name="hero-question-mark-circle" class="w-20 h-20 text-red-300" />
             <span class="text-red-300"> Missing Icon </span>
           </div>
