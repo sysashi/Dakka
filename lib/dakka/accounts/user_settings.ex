@@ -6,7 +6,7 @@ defmodule Dakka.Accounts.UserSettings do
     use Ecto.Schema
 
     embedded_schema do
-      field :show_item_icon, :boolean, default: false
+      field :show_item_icon, :boolean, default: true
       field :show_item_flavor_text, :boolean, default: true
       field :show_item_properties, :boolean, default: true
     end
