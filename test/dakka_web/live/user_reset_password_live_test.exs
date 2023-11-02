@@ -43,7 +43,7 @@ defmodule DakkaWeb.UserResetPasswordLiveTest do
           user: %{"password" => "short", "confirmation_password" => "secret123456"}
         )
 
-      assert result =~ "should be at least 8 character"
+      assert result =~ "should be at least 6 character"
       assert result =~ "does not match password"
     end
   end
@@ -82,7 +82,7 @@ defmodule DakkaWeb.UserResetPasswordLiveTest do
         |> render_submit()
 
       assert result =~ "Reset Password"
-      assert result =~ "should be at least 8 character(s)"
+      assert result =~ "should be at least 6 character(s)"
       assert result =~ "does not match password"
     end
   end
