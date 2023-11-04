@@ -868,30 +868,28 @@ defmodule Dakka.Market do
       Inventory.generate_random_item()
       |> Changeset.put_assoc(:user, user)
 
-    Repo.transaction(fn ->
-      user_item = Repo.insert!(item_changeset)
-      listing = build_listing(user_item)
+    user_item = Repo.insert!(item_changeset)
+    listing = build_listing(user_item)
 
-      open_for_offers = Enum.random([true, false])
-      random_gold = Enum.random(100..5000)
-      random_keys = Enum.random(1..30)
+    open_for_offers = Enum.random([true, false])
+    random_gold = Enum.random(100..5000)
+    random_keys = Enum.random(1..30)
 
-      listing_params =
-        if open_for_offers do
-          [
-            Enum.random([%{}, %{price_gold: random_gold}]),
-            Enum.random([%{}, %{price_golden_keys: random_keys}])
-          ]
-          |> Enum.reduce(%{open_for_offers: true}, &Map.merge(&2, &1))
-        else
-          fields = Enum.random(1..2)
+    listing_params =
+      if open_for_offers do
+        [
+          Enum.random([%{}, %{price_gold: random_gold}]),
+          Enum.random([%{}, %{price_golden_keys: random_keys}])
+        ]
+        |> Enum.reduce(%{open_for_offers: true}, &Map.merge(&2, &1))
+      else
+        fields = Enum.random(1..2)
 
-          [%{price_gold: random_gold}, %{price_golden_keys: random_keys}]
-          |> Enum.take_random(fields)
-          |> Enum.reduce(%{open_for_offers: false}, &Map.merge(&2, &1))
-        end
+        [%{price_gold: random_gold}, %{price_golden_keys: random_keys}]
+        |> Enum.take_random(fields)
+        |> Enum.reduce(%{open_for_offers: false}, &Map.merge(&2, &1))
+      end
 
-      create_listing(scope, listing, listing_params)
-    end)
+    create_listing(scope, listing, listing_params)
   end
 end
