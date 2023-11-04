@@ -41,4 +41,4 @@ npm-debug.log
 /scripts
 /priv/game_data
 /priv/static/images/item_base_icons
-
+/priv/certs
