@@ -1,9 +1,9 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="max-w-6xl mx-auto">
-    <div class="flex items-center justify-between border-b border-zinc-700 py-4 flex-wrap">
+<header class="sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto bg-zinc-800/50 sm:rounded-b-lg">
+    <div class="flex items-center justify-between py-4 flex-wrap">
       <.link
         navigate={if @current_user, do: ~p"/market", else: "/"}
-        class="inline-flex flex-1 justify-center sm:justify-start px-4 group items-center text-zinc-100 hover:text-white"
+        class="inline-flex flex-1 justify-center sm:justify-start px-4 sm:px-6 lg:px-8 group items-center text-zinc-100 hover:text-white"
       >
         <.icon
           name="custom-coins"
@@ -16,7 +16,7 @@
           Alpha
         </span>
       </.link>
-      <nav class="my-4 flex-1">
+      <nav class="my-4 flex-1 px-4">
         <ul class="flex gap-4 px-4 justify-center">
           <li
             :for={
@@ -159,7 +159,7 @@
     </div>
   </div>
 </header>
-<main class="px-4 py-2 sm:py-10 md:py-20 sm:px-6 lg:px-8 bg-zinc-900 flex-1 w-full">
+<main class="px-4 py-2 sm:py-10 md:py-20 sm:px-6 lg:px-8 flex-1 w-full">
   <.flashes flash={@flash} />
   <div class="mx-auto max-w-5xl">
     <%= @inner_content %>
