@@ -125,7 +125,7 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
       {:ok, _listing} ->
         socket =
           socket
-          |> put_flash(:info, "Item was marked sold")
+          |> append_flash(:info, "Item was marked sold")
           |> push_patch(to: socket.assigns.patch)
 
         {:noreply, socket}
@@ -142,8 +142,8 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
       {:ok, _listing} ->
         socket =
           socket
-          |> put_flash(:info, "Item listing deleted")
           |> push_patch(to: socket.assigns.patch)
+          |> append_flash(:info, "Item listing deleted")
 
         {:noreply, socket}
 
@@ -159,7 +159,7 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
       {:ok, _listing} ->
         socket =
           socket
-          |> put_flash(:info, "Item is listed on the Market")
+          |> append_flash(:info, "Item is listed on the Market")
           |> push_patch(to: socket.assigns.patch)
 
         {:noreply, socket}
@@ -176,8 +176,8 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
       {:ok, _listing} ->
         socket =
           socket
-          |> put_flash(:info, "Item Listing was updated")
           |> push_patch(to: socket.assigns.patch)
+          |> append_flash(:info, "Item Listing was updated")
 
         {:noreply, socket}
 

@@ -107,31 +107,56 @@ defmodule DakkaWeb.CoreComponents do
   attr :title, :string, default: nil
   attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
+  attr :duration, :integer, default: nil
+  attr :clear_key, :any
 
   slot :inner_block, doc: "the optional inner block that renders the flash message"
 
-  def flash(assigns) do
+  def flash(%{kind: kind} = assigns) do
+    assigns =
+      assigns
+      |> assign(:kind, to_string(kind))
+      |> assign_new(:clear_key, fn -> assigns.kind end)
+
     ~H"""
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-hook="Flash"
+      phx-click={
+        JS.push("lv:clear-flash", value: %{key: @clear_key})
+        |> JS.exec("data-hide", to: "##{@id}")
+      }
+      data-hide={hide("##{@id}")}
+      data-clear-key={@clear_key}
+      data-duration={@duration}
       role="alert"
       class={[
-        "fixed top-2 right-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        "relative w-80 sm:w-96 z-50 border-2 group cursor-pointer",
+        @kind == "info" && "bg-green-900 text-emerald-200 border-emerald-400 fill-cyan-200",
+        @kind == "error" && "bg-rose-800 text-rose-200 shadow-md border-rose-400 fill-rose-200",
+        "animate-disappear"
       ]}
+      style={@duration && "--disappear-duration:#{@duration}ms;"}
       {@rest}
     >
-      <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
-        <%= @title %>
-      </p>
-      <p class="mt-2 text-sm leading-5"><%= msg %></p>
+      <div class="p-3">
+        <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
+          <.icon :if={@kind == "info"} name="hero-information-circle-mini" class="h-4 w-4 mt-0.5" />
+          <.icon :if={@kind == "error"} name="hero-exclamation-circle-mini" class="h-4 w-4 mt-0.5" />
+          <%= @title %>
+        </p>
+        <p class="mt-2 text-sm leading-5"><%= msg %></p>
+      </div>
+      <div
+        :if={@duration}
+        id={"#{@id}-progress"}
+        class="flash-progress animate-expand-x h-3 bg-blue-200/20"
+        style={"--expand-x-duration:#{@duration}ms;"}
+      >
+      </div>
       <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
+        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-70 group-hover:opacity-100" />
       </button>
     </div>
     """
@@ -149,7 +174,7 @@ defmodule DakkaWeb.CoreComponents do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id}>
+    <div id={@id} class="fixed top-2 right-2">
       <.flash kind={:info} title="Success!" flash={@flash} />
       <.flash kind={:error} title="Error!" flash={@flash} />
       <.flash
@@ -177,6 +202,64 @@ defmodule DakkaWeb.CoreComponents do
     </div>
     """
   end
+
+  attr :flash, :map
+
+  def flashes(assigns) do
+    ~H"""
+    <div id="flashes-contrainer" class="text-2xl text-white fixed top-8 right-8 z-50 space-y-4">
+      <.flash
+        :for={{key, flash} <- Enum.sort_by(@flash, &elem(&1, 0))}
+        :if={is_map(flash)}
+        id={key}
+        kind={flash.kind}
+        duration={flash.duration}
+        title={flash_title(flash)}
+        clear_key={key}
+      >
+        <%= flash.message %>
+      </.flash>
+
+      <.flash
+        :for={{kind, flash} <- @flash}
+        :if={kind in ~w(info error)}
+        kind={kind}
+        title={flash_title(kind)}
+      >
+        <%= flash %>
+      </.flash>
+
+      <.flash
+        id="client-error"
+        kind={:error}
+        title="We can't find the internet"
+        phx-disconnected={show(".phx-client-error #client-error")}
+        phx-connected={hide("#client-error")}
+        hidden
+      >
+        Attempting to reconnect <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+      </.flash>
+
+      <.flash
+        id="server-error"
+        kind={:error}
+        title="Something went wrong!"
+        phx-disconnected={show(".phx-server-error #server-error")}
+        phx-connected={hide("#server-error")}
+        hidden
+      >
+        Hang in there while we get back on track
+        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+      </.flash>
+    </div>
+    """
+  end
+
+  defp flash_title(%{title: title}), do: title
+  defp flash_title(%{kind: kind}), do: kind |> to_string() |> flash_title()
+  defp flash_title("info"), do: "Success!"
+  defp flash_title("error"), do: "Error!"
+  defp flash_title(_), do: nil
 
   @doc """
   Renders a simple form.

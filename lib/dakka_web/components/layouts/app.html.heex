@@ -160,8 +160,8 @@
   </div>
 </header>
 <main class="px-4 py-2 sm:py-10 md:py-20 sm:px-6 lg:px-8 bg-zinc-900 flex-1 w-full">
+  <.flashes flash={@flash} />
   <div class="mx-auto max-w-5xl">
-    <.flash_group flash={@flash} />
     <%= @inner_content %>
   </div>
   <.modal :if={@scope.current_user_id && assigns[:socket]} id="app-settings">

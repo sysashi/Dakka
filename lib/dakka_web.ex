@@ -87,6 +87,7 @@ defmodule DakkaWeb do
       # Core UI components and translation
       import DakkaWeb.CoreComponents
       import DakkaWeb.Gettext
+      import DakkaWeb.Utils
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

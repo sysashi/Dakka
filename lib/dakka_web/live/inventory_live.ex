@@ -150,7 +150,12 @@ defmodule DakkaWeb.InventoryLive do
   def handle_event("delete-item", %{"item_id" => item_id}, socket) do
     case Inventory.delete_user_item(socket.assigns.scope, item_id) do
       {:ok, item} ->
-        {:noreply, stream_delete(socket, :items, item)}
+        socket =
+          socket
+          |> stream_delete(:items, item)
+          |> append_flash(:info, "Item was removed")
+
+        {:noreply, socket}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Error occured")}

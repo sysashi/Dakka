@@ -29,4 +29,31 @@
   }
 }
 
+.animate-disappear {
+  animation: disappear var(--disappear-duration) cubic-bezier(1,0,.9,0) 1;
+}
+
+@keyframes disappear {
+  from {
+    opacity: 100;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-expand-x {
+  animation: expand-x var(--expand-x-duration) linear 1 forwards;
+}
+
+@keyframes expand-x {
+  from {
+    width: 0px;
+  }
+
+  to {
+    width: 100%;
+  }
+}
 

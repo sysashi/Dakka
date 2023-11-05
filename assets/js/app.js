@@ -24,6 +24,20 @@ import topbar from "../vendor/topbar"
 
 let Hooks = {}
 
+Hooks.Flash = {
+  mounted() {
+    let duration = parseInt(this.el.dataset.duration);
+
+    if (Number.isInteger(duration)) {
+      setTimeout(() => {
+        this.liveSocket.execJS(this.el, this.el.dataset.hide);
+        this.pushEvent("lv:clear-flash", {key: this.el.dataset.clearKey})
+        this.el.remove()
+      }, duration)
+    }
+  }
+}
+
 Hooks.ChatAutoScroll = {
   mounted() {
     this.el.scrollTo(0, this.el.scrollHeight);
