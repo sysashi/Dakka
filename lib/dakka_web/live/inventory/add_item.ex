@@ -188,7 +188,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
           <div class="flex items-center justify-center">
             <span class="mr-auto inline-flex items-center">
               <.value_type_label value_type={mod[:value_type].value} />
-              <span class="ml-1"><%= mod[:label].value %></span>
+              <span class="ml-2"><%= mod[:label].value %></span>
             </span>
             <.input
               type="number"
@@ -235,16 +235,7 @@ defmodule DakkaWeb.Inventory.AddItemLive do
             }
           >
             <:result :let={%{result: result}}>
-              <div class="flex w-full justify-between">
-                <span><%= result.localized_string %></span>
-                <span class={[
-                  result.value_type == :integer && "bg-green-700 border-green-300",
-                  result.value_type == :percentage && "bg-sky-700 border-sky-300",
-                  "font-mono p-1 border text-xs self-end rounded-sm"
-                ]}>
-                  <%= result.value_type %>
-                </span>
-              </div>
+              <.item_mod_search_result result={result} />
             </:result>
           </.live_component>
         </div>
