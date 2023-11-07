@@ -63,13 +63,6 @@ defmodule Dakka.Market do
     |> where([l], is_nil(l.deleted_at))
   end
 
-  def listings() do
-    active_listing_query()
-    |> preload(user_game_item: ^Inventory.item_preloads())
-    |> Repo.all()
-    |> Enum.map(&%{&1 | user_game_item: Inventory.group_strings(&1.user_game_item)})
-  end
-
   def listings_with_buyer_offers(%Scope{} = scope, opts \\ []) do
     limit = Keyword.get(opts, :limit, 20)
     offset = Keyword.get(opts, :offset, 0)
@@ -93,7 +86,7 @@ defmodule Dakka.Market do
     |> limit(^limit)
     |> offset(^offset)
     |> Repo.all()
-    |> Enum.map(&%{&1 | user_game_item: Inventory.group_strings(&1.user_game_item)})
+    |> group_strings()
   end
 
   def get_listing!(id, preload \\ []) do
@@ -113,7 +106,21 @@ defmodule Dakka.Market do
     |> Repo.one!()
   end
 
-  def get_listing_with_buyer_offers!(listing_id, %Scope{} = scope) do
+  def get_listing_with_buyer_offers!(%Scope{} = scope, listing_id) do
+    scope
+    |> listing_with_buyer_offers_query(listing_id)
+    |> Repo.one!()
+    |> group_strings()
+  end
+
+  def find_listing_with_buyer_offers(%Scope{} = scope, listing_id) do
+    scope
+    |> listing_with_buyer_offers_query(listing_id)
+    |> Repo.find()
+    |> group_strings()
+  end
+
+  defp listing_with_buyer_offers_query(scope, listing_id) do
     preload =
       if scope.current_user do
         offers_query =
@@ -126,25 +133,22 @@ defmodule Dakka.Market do
         []
       end
 
-    listing =
-      Listing
-      |> where(id: ^listing_id)
-      |> where([l], is_nil(l.deleted_at))
-      |> preload(user_game_item: ^Inventory.item_preloads(), user_game_item: :user)
-      |> preload(^preload)
-      |> Repo.one!()
-
-    %{
-      listing
-      | user_game_item: Inventory.group_strings(listing.user_game_item)
-    }
+    Listing
+    |> where(id: ^listing_id)
+    |> where([l], is_nil(l.deleted_at))
+    |> preload([
+      :user_game_character,
+      user_game_item: ^Inventory.item_preloads(),
+      user_game_item: :user
+    ])
+    |> preload(^preload)
   end
 
   def search_listings(scope, opts) do
     scope
     |> search_listings_query(opts)
     |> Repo.all()
-    |> Enum.map(&%{&1 | user_game_item: Inventory.group_strings(&1.user_game_item)})
+    |> group_strings()
   end
 
   def search_listings_query(scope, opts) do
@@ -190,12 +194,9 @@ defmodule Dakka.Market do
     case Repo.insert(changeset) do
       {:ok, listing} ->
         listing =
-          Repo.preload(listing, user_game_item: Inventory.item_preloads(), user_game_item: :user)
-
-        listing = %{
           listing
-          | user_game_item: Inventory.group_strings(listing.user_game_item)
-        }
+          |> Repo.preload(user_game_item: Inventory.item_preloads(), user_game_item: :user)
+          |> group_strings()
 
         event = %ListingCreated{listing: listing}
 
@@ -217,19 +218,19 @@ defmodule Dakka.Market do
       |> Listing.changeset(attrs)
       |> Listing.validate_character(scope)
 
-    prev_query =
+    listing_before_update_query =
       Listing
       |> where(id: ^listing.id)
       |> lock("FOR UPDATE")
 
     multi =
       Multi.new()
-      |> Multi.one(:prev_listing, prev_query)
+      |> Multi.one(:before_update, listing_before_update_query)
       |> Multi.update(:listing, changeset)
-      |> Multi.merge(fn %{prev_listing: prev_listing, listing: listing} ->
+      |> Multi.merge(fn %{before_update: before_update, listing: listing} ->
         price_unchanged? =
-          prev_listing.price_gold == listing.price_gold &&
-            prev_listing.price_golden_keys == listing.price_golden_keys
+          before_update.price_gold == listing.price_gold &&
+            before_update.price_golden_keys == listing.price_golden_keys
 
         if !price_unchanged? do
           update_listing_active_offers_multi(listing, :declined_listing_changed)
@@ -365,18 +366,6 @@ defmodule Dakka.Market do
     )
   end
 
-  defp group_strings(nil), do: nil
-
-  defp group_strings(%ListingOffer{} = offer) do
-    %{
-      offer
-      | listing: %{
-          offer.listing
-          | user_game_item: Inventory.group_strings(offer.listing.user_game_item)
-        }
-    }
-  end
-
   defp preload_item_with_strings(%ListingOffer{} = offer) do
     offer
     |> Repo.preload(
@@ -408,7 +397,7 @@ defmodule Dakka.Market do
     |> limit(^limit)
     |> offset(^offset)
     |> Repo.all()
-    |> Enum.map(&group_strings/1)
+    |> group_strings()
   end
 
   def list_sent_offers(%Scope{} = scope, opts \\ []) do
@@ -430,28 +419,21 @@ defmodule Dakka.Market do
     |> limit(^limit)
     |> offset(^offset)
     |> Repo.all()
-    |> Enum.map(&group_strings/1)
+    |> group_strings()
   end
 
   def find_listing_offer(%User{} = seller_or_buyer, offer_id) do
-    query =
-      offer_with_item_query()
-      |> where(id: ^offer_id)
-      |> where(
-        [offer: o, item: i],
-        o.user_id == ^seller_or_buyer.id or i.user_id == ^seller_or_buyer.id
-      )
-
-    with {:ok, offer} <- Repo.find(query) do
-      {:ok, group_strings(offer)}
-    end
+    offer_with_item_query()
+    |> where(id: ^offer_id)
+    |> where(
+      [offer: o, item: i],
+      o.user_id == ^seller_or_buyer.id or i.user_id == ^seller_or_buyer.id
+    )
+    |> Repo.find()
+    |> group_strings()
   end
 
-  # offer (created | updated | cancelled | expired) ->
-  #   offer creator {:market, user_id}
-  #   item owner {:market, user_id}
-
-  # TODO own item
+  # TODO disallow creating offer for own listing?
   def create_listing_offer(user, listing, attrs) do
     changeset =
       %ListingOffer{user_id: user.id, listing_id: listing.id}
@@ -861,6 +843,32 @@ defmodule Dakka.Market do
 
   ## Utils
 
+  defp group_strings(%ListingOffer{} = offer) do
+    %{
+      offer
+      | listing: %{
+          offer.listing
+          | user_game_item: Inventory.group_strings(offer.listing.user_game_item)
+        }
+    }
+  end
+
+  defp group_strings(%Listing{} = listing) do
+    %{
+      listing
+      | user_game_item: Inventory.group_strings(listing.user_game_item)
+    }
+  end
+
+  defp group_strings({:ok, listing_or_offer}), do: {:ok, group_strings(listing_or_offer)}
+
+  defp group_strings(listings_or_offers) when is_list(listings_or_offers) do
+    Enum.map(listings_or_offers, &group_strings/1)
+  end
+
+  defp group_strings(other), do: other
+
+  # Lord have mercy
   def generate_random_listing(user) do
     scope = Scope.for_user(user)
 
@@ -871,7 +879,9 @@ defmodule Dakka.Market do
     user_item = Repo.insert!(item_changeset)
     listing = build_listing(user_item)
 
-    open_for_offers = Enum.random([true, false])
+    quick_sell = Enum.random([true, false])
+    open_for_offers = Enum.random([true, false, false, false])
+
     random_gold = Enum.random(100..5000)
     random_keys = Enum.random(1..30)
 
@@ -888,6 +898,24 @@ defmodule Dakka.Market do
         [%{price_gold: random_gold}, %{price_golden_keys: random_keys}]
         |> Enum.take_random(fields)
         |> Enum.reduce(%{open_for_offers: false}, &Map.merge(&2, &1))
+      end
+
+    listing_params =
+      if quick_sell do
+        scope
+        |> Accounts.list_user_characters()
+        |> Enum.take_random(1)
+        |> case do
+          [] ->
+            listing_params
+
+          [character] ->
+            listing_params
+            |> Map.put(:quick_sell, true)
+            |> Map.put(:user_game_character_id, character.id)
+        end
+      else
+        listing_params
       end
 
     create_listing(scope, listing, listing_params)

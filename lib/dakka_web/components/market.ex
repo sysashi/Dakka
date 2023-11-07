@@ -18,13 +18,13 @@ defmodule DakkaWeb.MarketComponents do
   def listing(assigns) do
     ~H"""
     <article>
-      <div class="ml-[60px]">
+      <div class="sm:ml-[60px]">
         <%= render_slot(@header) %>
       </div>
-      <div class="flex">
+      <div class="flex flex-col gap-2 sm:flex-row">
         <div
           :if={@show_price}
-          class={"mr-2 space-y-2 items-baseline max-w-[60px] #{@listing.status != :active && "grayscale"}"}
+          class={"flex items-end gap-2 mr-2 space-y-2 sm:block sm:items-baseline sm:max-w-[60px] #{@listing.status != :active && "grayscale"}"}
         >
           <div :if={@listing.price_gold} class="bg-zinc-800 border border-zinc-700 px-2">
             <.gold amount={@listing.price_gold} />
@@ -47,7 +47,7 @@ defmodule DakkaWeb.MarketComponents do
             <.item_card item={@listing.user_game_item} display_settings={@display_settings} />
             <div
               :if={@listing.status != :active}
-              class="bg-gray-900/50 border border-red-900/50 absolute inset-0 flex items-center justify-center"
+              class="bg-gray-900/80 border border-red-900/50 absolute inset-0 flex items-center justify-center"
             >
               <span class="text-2xl font-bold text-gray-100 capitalize"><%= @listing.status %></span>
             </div>

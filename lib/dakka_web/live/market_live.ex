@@ -165,10 +165,10 @@ defmodule DakkaWeb.MarketLive do
                   <% _ -> %>
                     <.button
                       :if={@online_sellers[listing.user_game_item.user_id] && listing.quick_sell}
-                      class="listing-seller-status-#{listing.user_game_item.user_id}"
+                      class={"listing-seller-status-#{listing.user_game_item.user_id}"}
                       size={:sm}
                       style={:extra}
-                      phx-click={JS.push("create-offer", value: %{id: listing.id})}
+                      phx-click={JS.patch(~p"/market/quick-buy/#{listing.id}")}
                     >
                       <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Quick Buy
                     </.button>
@@ -203,6 +203,23 @@ defmodule DakkaWeb.MarketLive do
       <span>Nothing left</span>
       <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
     </div>
+    <.modal
+      :if={@live_action == :quick_buy_dialog}
+      id="quick-buy-dialog"
+      on_cancel={JS.patch(~p"/market")}
+      show
+    >
+      <.live_component
+        id={"quick-buy-#{@listing.id}"}
+        scope={@scope}
+        module={DakkaWeb.MarketLive.QuickBuyDialogComponent}
+        title={@page_title}
+        action={@live_action}
+        listing={@listing}
+        settings={@settings}
+        patch={~p"/market"}
+      />
+    </.modal>
     <.modal
       :if={@live_action in [:new_offer]}
       id="listing-offer-modal"
@@ -246,6 +263,7 @@ defmodule DakkaWeb.MarketLive do
       |> assign_online_sellers()
       |> stream(:listings, [])
       |> assign(:filters, base_filters)
+      |> assign(:listing, nil)
       |> assign(page: 1, per_page: 20)
       |> paginate_listings(1)
 
@@ -268,6 +286,35 @@ defmodule DakkaWeb.MarketLive do
     |> assign(:page_title, "Market - Create Offer")
     |> assign(:offer, Market.build_offer(scope, listing))
     |> assign(:listing_id, listing.id)
+  end
+
+  defp apply_action(socket, :quick_buy_dialog, %{"listing_id" => listing_id}) do
+    case Market.find_listing_with_buyer_offers(socket.assigns.scope, listing_id) do
+      {:ok, listing} ->
+        seller_online? = Presence.user_online?(:market, listing.user_game_item.user_id)
+
+        cond do
+          seller_online? && listing.quick_sell ->
+            socket
+            |> assign(:page_title, "Market - Quick Buy")
+            |> assign(:listing, listing)
+
+          seller_online? ->
+            socket
+            |> append_flash(:error, "Listing is not available for Quick Buy")
+            |> push_patch(to: ~p"/market")
+
+          true ->
+            socket
+            |> append_flash(:error, "Seller is offline")
+            |> push_patch(to: ~p"/market")
+        end
+
+      {:error, :not_found} ->
+        socket
+        |> append_flash(:error, "Listing not found")
+        |> push_patch(to: ~p"/market")
+    end
   end
 
   def handle_event("next-page", _, socket) do
@@ -323,6 +370,10 @@ defmodule DakkaWeb.MarketLive do
     end
   end
 
+  def handle_info({:close_quick_buy_dialog, listing_id}, socket) do
+    {:noreply, maybe_close_quick_buy_dialog(socket, listing_id)}
+  end
+
   def handle_info({Presence, presence}, socket) do
     {:noreply, handle_presence(socket, presence)}
   end
@@ -352,23 +403,28 @@ defmodule DakkaWeb.MarketLive do
     {:noreply, socket}
   end
 
-  def handle_info({Market.Public, %ListingDeleted{listing: listing}}, socket) do
-    socket = stream_delete(socket, :listings, listing)
+  def handle_info({Market.Public, %ListingDeleted{listing: listing} = event}, socket) do
+    socket =
+      socket
+      |> stream_delete(:listings, listing)
+      |> maybe_update_quick_buy_dialog(event)
+
     {:noreply, socket}
   end
 
-  def handle_info({Market.Public, %mod{listing: listing}}, socket)
+  def handle_info({Market.Public, %mod{listing: listing} = event}, socket)
       when mod in [
              ListingExpired,
              ListingSold,
              ListingUpdated
            ] do
-    listing = Market.get_listing_with_buyer_offers!(listing.id, socket.assigns.scope)
+    listing = Market.get_listing_with_buyer_offers!(socket.assigns.scope, listing.id)
 
     socket =
       socket
       |> stream_insert(:listings, listing, at: -1)
       |> push_event("highlight", %{id: "listings-#{listing.id}"})
+      |> maybe_update_quick_buy_dialog(%{event | listing: listing})
 
     {:noreply, socket}
   end
@@ -380,7 +436,7 @@ defmodule DakkaWeb.MarketLive do
              OfferCreated,
              OfferDeclined
            ] do
-    listing = Market.get_listing_with_buyer_offers!(offer.listing_id, socket.assigns.scope)
+    listing = Market.get_listing_with_buyer_offers!(socket.assigns.scope, offer.listing_id)
 
     socket =
       socket
@@ -466,6 +522,7 @@ defmodule DakkaWeb.MarketLive do
       socket
       |> update(:online_sellers, &Map.delete(&1, left_user.id))
       |> push_event("hide-seller-online", %{class: "listing-seller-status-#{left_user.id}"})
+      |> maybe_update_quick_buy_dialog({:seller_offline, left_user.id})
     else
       socket
     end
@@ -478,5 +535,57 @@ defmodule DakkaWeb.MarketLive do
       end
 
     assign(socket, :online_sellers, ids)
+  end
+
+  ## Quick Buy helpers
+
+  defp maybe_update_quick_buy_dialog(socket, event) do
+    %{live_action: action, listing: listing} = socket.assigns
+
+    if action == :quick_buy_dialog && listing do
+      update_quick_buy_dialog(socket, listing, event)
+    else
+      socket
+    end
+  end
+
+  defp update_quick_buy_dialog(socket, current_listing, {:seller_offline, seller_id}) do
+    if current_listing.user_game_item.user_id == seller_id do
+      send_update(DakkaWeb.MarketLive.QuickBuyDialogComponent,
+        id: "quick-buy-#{current_listing.id}",
+        seller: :offline
+      )
+    end
+
+    socket
+  end
+
+  defp update_quick_buy_dialog(socket, current_listing, %mod{} = event)
+       when mod in [
+              ListingExpired,
+              ListingSold,
+              ListingUpdated,
+              ListingDeleted
+            ] do
+    if current_listing.id == event.listing.id do
+      send_update(DakkaWeb.MarketLive.QuickBuyDialogComponent,
+        id: "quick-buy-#{current_listing.id}",
+        listing_event: event
+      )
+    end
+
+    socket
+  end
+
+  defp update_quick_buy_dialog(socket, _current_listing, _event), do: socket
+
+  defp maybe_close_quick_buy_dialog(socket, listing_id) do
+    %{live_action: action, listing: listing} = socket.assigns
+
+    if action == :quick_buy_dialog && listing && listing.id == listing_id do
+      push_patch(socket, to: ~p"/market")
+    else
+      socket
+    end
   end
 end

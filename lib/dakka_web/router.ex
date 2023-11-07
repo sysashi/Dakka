@@ -112,6 +112,7 @@ defmodule DakkaWeb.Router do
 
       live "/market", MarketLive, :index
       live "/market/offer/:listing_id", MarketLive, :new_offer
+      live "/market/quick-buy/:listing_id", MarketLive, :quick_buy_dialog
 
       live "/inventory", InventoryLive, :index
       live "/inventory/list_item/:id", InventoryLive, :new_listing

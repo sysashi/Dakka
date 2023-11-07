@@ -88,7 +88,6 @@ defmodule DakkaWeb.InventoryLive do
         listing={@listing}
         patch={~p"/inventory"}
         current_path={@current_path}
-        quick_sell_enabled={false}
       />
     </.modal>
     """

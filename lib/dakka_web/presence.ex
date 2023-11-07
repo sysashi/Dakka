@@ -41,6 +41,10 @@ defmodule DakkaWeb.Presence do
     list("proxy:" <> topic(:market))
   end
 
+  def user_online?(topic, user_id) do
+    Enum.any?(get_by_key("proxy:" <> topic(topic), user_id))
+  end
+
   def fetch(_topic, presences) do
     users =
       presences

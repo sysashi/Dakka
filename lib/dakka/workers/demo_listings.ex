@@ -59,7 +59,7 @@ defmodule Dakka.Workers.DemoListings do
       end
 
       %{}
-      |> new(schedule_in: Enum.random(5..30))
+      |> new(schedule_in: Enum.random(10..30//5))
       |> Oban.insert()
     else
       :ok

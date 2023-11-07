@@ -23,7 +23,7 @@ defmodule DakkaWeb.MarketLive.ListingFormComponent do
 
         <.input type="checkbox" field={@form[:open_for_offers]} label="Open for Offers" />
 
-        <div :if={@quick_sell_enabled} class="flex gap-4 items-center">
+        <div class="flex gap-4 items-center">
           <div class="basis-1/3">
             <.input type="checkbox" field={@form[:quick_sell]} label="Quick Sell" />
           </div>
