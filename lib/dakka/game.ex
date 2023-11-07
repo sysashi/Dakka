@@ -170,15 +170,16 @@ defmodule Dakka.Game do
     end
   end
 
+  # Groups translation strings by key then builds a map of (lang_code => value) for each key
+  # for example we got the following strings:
+  #   1. %TranslationString{key: :name, value: "Boots", language: %Language{code: :en}}
+  #   2. %TranslationString{key: :name, value: "...", language: %Language{code: :ja}}
+  #   3. %TranslationString{key: :name, value: "...", language: %Language{code: :zh_hans}}
+  # Result would be:
+  #   %{name: %{en: "Boots", ja: "...", ...}}
   defp group_translation_strings(strings) do
     for {key, strings} <- Enum.group_by(strings, & &1.key), into: %{} do
-      lang_values =
-        for {lang, [value]} <- Enum.group_by(strings, & &1.language.code, & &1.value),
-            into: %{} do
-          {lang, value}
-        end
-
-      {key, lang_values}
+      {key, Enum.reduce(strings, %{}, &Map.put(&2, &1.language.code, &1.value))}
     end
   end
 
