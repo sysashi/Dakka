@@ -46,11 +46,18 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
+  maybe_ssl = System.get_env("ECTO_SSL") in ~w(true 1)
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  %URI{host: database_host} = URI.parse(database_url)
 
   config :dakka, Dakka.Repo,
-    # ssl: true,
+    ssl: maybe_ssl,
     url: database_url,
+    ssl_opts: [
+      verify: :verify_peer,
+      cacertfile: Path.join(:code.priv_dir(:dakka), "certs/team.pem"),
+      server_name_indication: to_charlist(database_host)
+    ],
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
 
