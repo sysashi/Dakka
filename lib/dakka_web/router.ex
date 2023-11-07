@@ -36,6 +36,7 @@ defmodule DakkaWeb.Router do
         {Hooks.User, {:notifications, subscribe?: false}}
       ] do
       live "/", MarketLive, :index
+      live "/quick-buy/:listing_id", MarketLive, :quick_buy_dialog
     end
   end
 

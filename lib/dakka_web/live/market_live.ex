@@ -168,7 +168,12 @@ defmodule DakkaWeb.MarketLive do
                       class={"listing-seller-status-#{listing.user_game_item.user_id}"}
                       size={:sm}
                       style={:extra}
-                      phx-click={JS.patch(~p"/market/quick-buy/#{listing.id}")}
+                      phx-click={
+                        if(@scope.current_user,
+                          do: JS.patch(~p"/market/quick-buy/#{listing.id}"),
+                          else: JS.patch(~p"/quick-buy/#{listing.id}")
+                        )
+                      }
                     >
                       <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Quick Buy
                     </.button>
