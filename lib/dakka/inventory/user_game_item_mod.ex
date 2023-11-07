@@ -21,7 +21,7 @@ defmodule Dakka.Inventory.UserGameItemMod do
       values: [:integer, :percentage, :predefined_value],
       virtual: true
 
-    field :value_float, :float, virtual: true, default: 0.0
+    field :value_float, :float, virtual: true
   end
 
   def changeset(item_mod, attrs \\ %{}) do

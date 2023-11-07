@@ -214,6 +214,7 @@ defmodule Dakka.Inventory do
 
     params = %{
       value: mod["value"],
+      value_float: mod["value"],
       label: mod["localized_string"],
       item_mod_id: mod["id"],
       mod_type: type,

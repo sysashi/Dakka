@@ -352,7 +352,6 @@ defmodule DakkaWeb.GameComponents do
   defp format_value(val, :predefined_value, _opts), do: "#{val}"
 
   defp sign(num) when is_number(num) and num > 0, do: "+"
-  defp sign(num) when is_number(num) and num < 0, do: "-"
   defp sign(_num), do: ""
 
   attr :result, :map
