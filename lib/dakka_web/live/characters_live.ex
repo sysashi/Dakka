@@ -54,6 +54,8 @@ defmodule DakkaWeb.CharactersLive do
         patch={~p"/characters"}
         return_to={@return_to}
         character={@character}
+        on_character_create={fn char -> send(self(), {:new_character, char}) end}
+        on_character_update={fn char -> send(self(), {:edit_character, char}) end}
       />
     </.modal>
     """

@@ -94,13 +94,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
 
   @impl true
   def handle_event("validate-item-filters", %{"_target" => ["reset"]}, socket) do
-    case Dakka.ItemFilters.base_filters() do
-      {:ok, filters} ->
-        send(self(), {:search, filters})
-
-      _ ->
-        send(self(), {:search, []})
-    end
+    socket.assigns.on_search.(ItemFilters.base_filters())
 
     changeset = ItemFilters.change(%ItemFilters{}, %{})
 
@@ -131,7 +125,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
       |> Map.put(:action, :validate)
 
     with {:ok, filters} <- ItemFilters.to_filters(changeset) do
-      send(self(), {:search, filters})
+      socket.assigns.on_search.(filters)
     end
 
     socket =
@@ -205,8 +199,8 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
 
   defp item_base_filters(assigns) do
     ~H"""
-    <.input type="hidden" field={@form[:item_base_slug]} hidden />
-    <.input type="hidden" field={@form[:item_base]} hidden />
+    <.input type="hidden" field={@form[:item_base_slug]} />
+    <.input type="hidden" field={@form[:item_base]} />
     <div :if={@form[:item_base].value} class="text-white my-2 text-xl flex flex-col">
       <span class="font-bold"><%= @form[:item_base].value %></span>
 
@@ -305,9 +299,9 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
       <input type="hidden" name={@sort_name} value={mod.index} />
       <div class="flex gap-x-2 text-white flex-col justify-center">
         <div class="flex">
-          <.input type="hidden" field={mod[:slug]} hidden />
-          <.input type="hidden" field={mod[:label]} hidden />
-          <.input type="hidden" field={mod[:value_type]} hidden />
+          <.input type="hidden" field={mod[:slug]} />
+          <.input type="hidden" field={mod[:label]} />
+          <.input type="hidden" field={mod[:value_type]} />
           <span class="mr-auto inline-flex items-center">
             <.value_type_label value_type={mod[:value_type].value} />
             <span class="ml-2 text-sm"><%= mod[:label].value %></span>
@@ -378,8 +372,8 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
       <input type="hidden" name={@sort_name} value={mod.index} />
       <div class="flex gap-x-2 text-white flex-col justify-center">
         <div class="flex">
-          <.input type="hidden" field={mod[:slug]} hidden />
-          <.input type="hidden" field={mod[:label]} hidden />
+          <.input type="hidden" field={mod[:slug]} />
+          <.input type="hidden" field={mod[:label]} />
           <span class="mr-auto inline-flex items-center">
             <span class=""><%= mod[:label].value %></span>
           </span>

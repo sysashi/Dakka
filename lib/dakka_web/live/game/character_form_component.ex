@@ -65,7 +65,7 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
           |> put_flash(:info, "Character Created")
           |> return_to_or_patch()
 
-        send(self(), {:new_character, character})
+        socket.assigns.on_character_create.(character)
 
         {:noreply, socket}
 
@@ -82,7 +82,7 @@ defmodule DakkaWeb.GameLive.CharacterFormComponent do
           |> put_flash(:info, "Character Updated")
           |> push_patch(to: socket.assigns.patch)
 
-        send(self(), {:edit_character, character})
+        socket.assigns.on_character_update.(character)
 
         {:noreply, socket}
 

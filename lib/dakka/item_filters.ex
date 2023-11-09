@@ -30,7 +30,8 @@ defmodule Dakka.ItemFilters do
   end
 
   def base_filters() do
-    to_filters(build())
+    {:ok, filters} = to_filters(build())
+    filters
   end
 
   def build(attrs \\ %{}) do

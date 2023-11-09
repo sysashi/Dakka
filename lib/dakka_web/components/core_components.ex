@@ -390,7 +390,6 @@ defmodule DakkaWeb.CoreComponents do
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class!, :any, default: nil
   attr :hide_errors, :boolean, default: false
-  attr :hidden, :boolean, default: false
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -483,7 +482,7 @@ defmodule DakkaWeb.CoreComponents do
     assigns = assign(assigns, :custom_class, custom_class(assigns.class!, assigns.errors))
 
     ~H"""
-    <div phx-feedback-for={@name} class={@hidden && "hidden"}>
+    <div phx-feedback-for={@name}>
       <.label for={@id}><%= @label %></.label>
       <input
         type={@type}

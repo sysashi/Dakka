@@ -50,7 +50,11 @@ defmodule DakkaWeb.MarketLive do
 
       <div class="h-full origin-top hidden sm:block" id="filters-form-wrapper">
         <article class="bg-zinc-800 border border-zinc-700">
-          <.live_component module={DakkaWeb.MarketLive.ListingFiltersFormComponent} id="filters" />
+          <.live_component
+            id="filters"
+            module={DakkaWeb.MarketLive.ListingFiltersFormComponent}
+            on_search={fn filters -> send(self(), {:search, filters}) end}
+          />
         </article>
       </div>
     </div>
@@ -203,7 +207,7 @@ defmodule DakkaWeb.MarketLive do
         </div>
       </div>
     </section>
-    <div :if={@end_of_timeline?} class="mt-5 text-xl text-zinc-500 italic text-center">
+    <div :if={@end_of_timeline?} class="mt-5 text-xl text-zinc-500 italic text-center py-8">
       <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
       <span>Nothing left</span>
       <.icon name="custom-skelly" class="rotateZ w-10 h-10 text-zinc-500" />
@@ -254,20 +258,11 @@ defmodule DakkaWeb.MarketLive do
       scope.current_user && Market.subscribe(scope)
     end
 
-    base_filters =
-      case Dakka.ItemFilters.base_filters() do
-        {:ok, filters} ->
-          filters
-
-        _ ->
-          []
-      end
-
     socket =
       socket
       |> assign_online_sellers()
       |> stream(:listings, [])
-      |> assign(:filters, base_filters)
+      |> assign(:filters, Dakka.ItemFilters.base_filters())
       |> assign(:listing, nil)
       |> assign(page: 1, per_page: 20)
       |> paginate_listings(1)
