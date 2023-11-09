@@ -111,7 +111,7 @@ defmodule DakkaWeb.MarketLive do
         >
           <.listing listing={listing} display_settings={@settings.display}>
             <:header>
-              <div class="text-xs mb-2 text-zinc-300 px-2 py-[2px] flex gap-x-2">
+              <div class="md:ml-2 md:px-2 text-xs mb-2 text-zinc-300 py-[2px] flex gap-x-2">
                 <div class="flex-1">
                   <span class="relative inline-flex items-center">
                     <span
