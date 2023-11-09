@@ -35,9 +35,4 @@ defmodule Dakka.Game.ItemBaseMod do
   def build(item_base, attrs) do
     changeset(%ItemBaseMod{item_base_id: item_base.id}, attrs)
   end
-
-  def compare(:implicit, _), do: :gt
-  def compare(:explicit, :implicit), do: :lt
-  def compare(:explicit, _), do: :gt
-  def compare(:property, _), do: :lt
 end

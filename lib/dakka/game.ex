@@ -14,7 +14,6 @@ defmodule Dakka.Game do
     ItemMod,
     ItemModValue,
     ItemBase,
-    ItemBaseMod,
     ItemRarity
   }
 
@@ -199,17 +198,6 @@ defmodule Dakka.Game do
         ]
       ]
     ]
-  end
-
-  def list_item_mods() do
-    ItemMod
-    |> Repo.all()
-  end
-
-  def sorted_group_mods(%{mods: mods}) do
-    mods
-    |> Enum.group_by(& &1.mod_type)
-    |> Enum.sort_by(&elem(&1, 0), {:desc, ItemBaseMod})
   end
 
   def rarity_options() do
