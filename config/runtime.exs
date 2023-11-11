@@ -28,16 +28,6 @@ if app_name = System.get_env("FLY_APP_NAME") do
   config :dakka, :dns_cluster_query, "#{app_name}.internal"
 end
 
-if admins = System.get_env("ADMIN_USERNAMES", "") do
-  admin_usernames =
-    admins
-    |> String.split(",")
-    |> Enum.map(&String.trim/1)
-    |> Enum.filter(&(&1 != ""))
-
-  config :dakka, :admin_usernames, admin_usernames
-end
-
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -180,4 +170,15 @@ if config_env() == :prod do
   config :opentelemetry,
     span_processor: :batch,
     exporter: :otlp
+
+  # Admins
+  if admins = System.get_env("ADMIN_USERNAMES", "") do
+    admin_usernames =
+      admins
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+      |> Enum.filter(&(&1 != ""))
+
+    config :dakka, :admin_usernames, admin_usernames
+  end
 end

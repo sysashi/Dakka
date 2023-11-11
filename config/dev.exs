@@ -89,3 +89,5 @@ if System.get_env("DEBUG_OTEL") == "true" do
 else
   config :opentelemetry, traces_exporter: :none
 end
+
+config :dakka, :admin_usernames, ~w(sysashi)

@@ -33,7 +33,8 @@ defmodule DakkaWeb.Router do
         Hooks.Scope,
         Hooks.Nav,
         {Hooks.User, :app_settings},
-        {Hooks.User, {:notifications, subscribe?: false}}
+        {Hooks.User, {:notifications, subscribe?: false}},
+        Hooks.Announcements
       ] do
       live "/", MarketLive, :index
       live "/quick-buy/:listing_id", MarketLive, :quick_buy_dialog
@@ -60,10 +61,26 @@ defmodule DakkaWeb.Router do
     end
   end
 
-  scope "/dashboard" do
+  scope "/dashboard", DakkaWeb do
     import Phoenix.LiveDashboard.Router
 
     pipe_through [:browser, :require_authenticated_user, :require_admin_user]
+
+    live_session :admin,
+      on_mount: [
+        {DakkaWeb.UserAuth, :ensure_authenticated},
+        Hooks.Scope,
+        Hooks.Nav,
+        {Hooks.User, :notifications},
+        Hooks.Announcements
+      ] do
+      live "/announcements", AnnouncementLive, :index
+      live "/announcements/new", AnnouncementLive, :new
+      live "/announcements/:id/edit", AnnouncementLive, :edit
+
+      live "/announcements/:id", AnnouncementLive.Show, :show
+      live "/announcements/:id/show/edit", AnnouncementLive.Show, :edit
+    end
 
     live_dashboard "/",
       metrics: DakkaWeb.Telemetry,
@@ -81,7 +98,8 @@ defmodule DakkaWeb.Router do
         {DakkaWeb.UserAuth, :redirect_if_user_is_authenticated},
         Hooks.Scope,
         Hooks.Nav,
-        {Hooks.User, :notifications}
+        {Hooks.User, :notifications},
+        Hooks.Announcements
       ] do
       live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
@@ -103,7 +121,8 @@ defmodule DakkaWeb.Router do
         Hooks.Nav,
         {Hooks.User, :app_settings},
         {Hooks.User, {:notifications, subscribe?: false}},
-        Hooks.MarketPresence
+        Hooks.MarketPresence,
+        Hooks.Announcements
       ] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
@@ -138,7 +157,8 @@ defmodule DakkaWeb.Router do
         Hooks.OtelAttrs,
         Hooks.Scope,
         Hooks.Nav,
-        {Hooks.User, :notifications}
+        {Hooks.User, :notifications},
+        Hooks.Announcements
       ] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new

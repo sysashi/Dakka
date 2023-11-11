@@ -261,6 +261,112 @@ defmodule DakkaWeb.CoreComponents do
   defp flash_title("error"), do: "Error!"
   defp flash_title(_), do: nil
 
+  attr :entries, :list, default: []
+  attr :class, :any, default: nil
+
+  def announcements(assigns) do
+    ~H"""
+    <div class="max-w-5xl mx-auto px-2 md:px-0">
+      <div class="text-right mt-5 hidden">
+        <span
+          class="text-zinc-500 italic underline hover:cursor-pointer hover:text-zinc-300"
+          phx-click={show(".global-announcement.hidden")}
+        >
+          Show hidden Announcements
+        </span>
+      </div>
+      <article
+        id="global-announcements"
+        class={["space-y-4 ", @class]}
+        phx-hook="GlobalAnnouncements"
+        phx-update="stream"
+      >
+        <.announcement
+          :for={{dom_id, %{announcement: a, hidden: hidden}} <- @entries}
+          id={a.id}
+          title={a.title}
+          kind={a.kind}
+          body={a.body}
+          dom_id={dom_id}
+          hidden={hidden}
+        />
+      </article>
+    </div>
+    """
+  end
+
+  attr :id, :any
+  attr :dom_id, :string, default: nil
+  attr :kind, :atom, values: [:info, :warning, :error]
+  attr :title, :string, default: nil
+  attr :body, :string
+  attr :hidden, :boolean, default: false
+
+  def announcement(assigns) do
+    ~H"""
+    <section
+      class={[
+        "text-zinc-800 border-4 border-dashed hover:brightness-105 hover:cursor-pointer transition-all relative group",
+        @hidden && "hidden",
+        @kind == :info && "bg-zinc-400 border-zinc-500",
+        @kind == :warning && "bg-amber-600 border-amber-700",
+        @kind == :error && "bg-red-500 border-red-600",
+        "global-announcement"
+      ]}
+      id={@dom_id}
+    >
+      <div class="p-4">
+        <h3 :if={@title} class="text-xl">
+          <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6" />
+          <.icon :if={@kind == :error} name="hero-exclamation-circle" class="h-6 w-6" />
+          <.icon :if={@kind == :warning} name="hero-exclamation-triangle" class="h-6 w-6" />
+          <%= @title %>
+        </h3>
+        <div class={[
+          "mt-1 py-1",
+          "[&_a]:text-blue-600 [&_a]:underline",
+          "[&_hr]:text-blue-500 [&_hr]:border-t [&_hr]:border-zinc-500",
+          "[&_code]:bg-slate-400 [&_code]:px-[4px] [&_code]:py-[2px] [&_code]:text-slate-900 [&_code]:border [&_code]:border-slate-500"
+        ]}>
+          <.markdown text={@body} />
+        </div>
+      </div>
+      <div class="absolute top-1 right-1">
+        <button
+          phx-click={
+            JS.dispatch(
+              "hide-announcement",
+              to: "#global-announcements",
+              detail: %{id: @id}
+            )
+            |> hide("##{@dom_id}")
+          }
+          type="button"
+          class="-m-3 flex-none p-3 opacity-70 group-hover:opacity-90"
+          aria-label={gettext("close")}
+        >
+          <.icon name="hero-x-mark-solid" class="text-zinc-800 h-7 w-7" />
+        </button>
+      </div>
+    </section>
+    """
+  end
+
+  def markdown(assigns) do
+    text = if assigns.text == nil, do: "", else: assigns.text
+
+    markdown_html =
+      String.trim(text)
+      |> Earmark.as_html!()
+      |> Phoenix.HTML.raw()
+
+    assigns = assign(assigns, :markdown, markdown_html)
+
+    ~H"""
+    <%= @markdown %>
+    """
+  end
+
   @doc """
   Renders a simple form.
 
@@ -663,10 +769,10 @@ defmodule DakkaWeb.CoreComponents do
   def list(assigns) do
     ~H"""
     <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100">
+      <dl class="-my-4 divide-y divide-zinc-600">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500"><%= item.title %></dt>
-          <dd class="text-zinc-700"><%= render_slot(item) %></dd>
+          <dt class="w-1/4 flex-none text-zinc-200"><%= item.title %></dt>
+          <dd class="text-zinc-300"><%= render_slot(item) %></dd>
         </div>
       </dl>
     </div>
@@ -688,7 +794,7 @@ defmodule DakkaWeb.CoreComponents do
     <div class="mt-16">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+        class="text-sm font-semibold leading-6 text-zinc-200 hover:text-zinc-300"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         <%= render_slot(@inner_block) %>

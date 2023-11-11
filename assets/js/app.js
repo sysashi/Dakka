@@ -38,6 +38,52 @@ Hooks.Flash = {
   }
 }
 
+Hooks.GlobalAnnouncements = {
+  storageKey: "hidden-announcements",
+
+  mounted() {
+    // localStorage.removeItem(this.storageKey);
+    this.initStorage();
+
+    this.handleEvent("clear-hidden-announcements", ({ids: ids}) => {
+      this.clearObsolete(ids);
+    });
+
+    this.el.addEventListener("hide-announcement", ({detail: {id}}) => {
+      this.updateHidden(id);
+    });
+  },
+
+  updateHidden(id) {
+    let hidden = this.getHidden();
+    hidden[id] = id;
+    this.storeHidden(hidden);
+  },
+
+  getHidden() {
+    let item = localStorage.getItem(this.storageKey);
+    return JSON.parse(item);
+  },
+
+  storeHidden(hidden) {
+    localStorage.setItem(this.storageKey, JSON.stringify(hidden));
+  },
+
+  clearObsolete(ids) {
+    let hidden = this.getHidden();
+    ids.forEach(id => delete hidden[id]);
+    this.storeHidden(hidden);
+  },
+
+  initStorage() {
+    let item = localStorage.getItem(this.storageKey);
+
+    if (!item) {
+      localStorage.setItem(this.storageKey, JSON.stringify({}))
+    }
+  }
+}
+
 Hooks.ChatAutoScroll = {
   mounted() {
     this.el.scrollTo(0, this.el.scrollHeight);
@@ -173,7 +219,13 @@ function notify(title, body, tag) {
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {hooks: Hooks, params: {_csrf_token: csrfToken}})
+let liveSocket = new LiveSocket("/live", Socket, {
+    hooks: Hooks,
+    params: {
+      _csrf_token: csrfToken,
+      hidden_announcements: Hooks.GlobalAnnouncements.getHidden()
+    }
+})
 
 window.addEventListener("phx:browser-notify", ({detail}) => {
   let {title, body, tag} = detail;

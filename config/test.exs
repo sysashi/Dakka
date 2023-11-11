@@ -37,3 +37,6 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Prevent Oban from running jobs and plugins during test runs
 config :dakka, Oban, testing: :inline
+
+# Test admin usernames
+config :dakka, :admin_usernames, ~w(testadmin)
