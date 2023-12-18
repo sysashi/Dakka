@@ -99,4 +99,11 @@ config :dakka, Oban,
 
 config :dakka, :admin_usernames, []
 
+config :dakka, :oauth,
+  discord: [
+    client_id: System.get_env("DISCORD_CLIENT_ID"),
+    client_secret: System.get_env("DISCORD_CLIENT_SECRET"),
+    redirect_uri: System.get_env("DISCORD_REDIRECT_URI")
+  ]
+
 import_config "#{config_env()}.exs"

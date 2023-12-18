@@ -34,6 +34,23 @@ defmodule DakkaWeb.UserLoginLive do
           </.button>
         </:actions>
       </.simple_form>
+
+      <div>
+        <div class={[
+          "justify-center items-center px-2 text-gray-400 flex min-h-[20px] my-6 mx-2",
+          "before:h-[1px] before:flex-1 before:bg-gradient-to-r before:from-gray-900 before:to-gray-400",
+          "after:h-[1px] after:flex-1 after:bg-gradient-to-l after:from-gray-900 after:to-gray-400"
+        ]}>
+          <span class="px-4">or</span>
+        </div>
+
+        <a
+          href={Dakka.Oauth.DiscordClient.log_in_url()}
+          class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <.icon name="custom-discord-mark-white" class="w-6 h-6 mr-2" /> Sign in with Discord
+        </a>
+      </div>
     </div>
     """
   end

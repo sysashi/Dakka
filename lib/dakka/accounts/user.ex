@@ -2,7 +2,10 @@ defmodule Dakka.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Dakka.Accounts.UserSettings
+  alias Dakka.Accounts.{
+    UserSettings,
+    UserIdentity
+  }
 
   schema "users" do
     field :email, :string
@@ -10,10 +13,53 @@ defmodule Dakka.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :avatar_url, :string
     embeds_one :settings, UserSettings, on_replace: :update
+
+    has_many :user_identities, UserIdentity
 
     timestamps()
   end
+
+  def discord_registation_changeset(user_info, token) do
+    %{"id" => provider_id, "avatar" => avatar, "verified" => verified?} = user_info
+
+    identity_changeset = UserIdentity.discord_registration_changeset(user_info, token)
+
+    if identity_changeset.valid? do
+      params = %{
+        email: user_info["email"],
+        username: user_info["username"]
+      }
+
+      %__MODULE__{}
+      |> cast(params, [:email, :username])
+      |> validate_required(:username)
+      |> maybe_validate_unique_username([])
+      |> maybe_validate_unique_email([])
+      |> put_avatar(provider_id, avatar)
+      |> maybe_mark_verified(verified?)
+      |> put_assoc(:user_identities, [identity_changeset])
+    else
+      %__MODULE__{}
+      |> change()
+      |> Map.put(:valid?, false)
+      |> put_assoc(:user_identities, [identity_changeset])
+    end
+  end
+
+  def put_avatar(changeset, id, avatar_hash) when is_binary(avatar_hash) do
+    put_change(
+      changeset,
+      :avatar_url,
+      "https://cdn.discordapp.com/avatars/#{id}/#{avatar_hash}.png"
+    )
+  end
+
+  def put_avatar(changeset, _, _), do: changeset
+
+  def maybe_mark_verified(changeset, true), do: confirm_changeset(changeset)
+  def maybe_mark_verified(changeset, _), do: changeset
 
   @doc """
   A user changeset for registration.

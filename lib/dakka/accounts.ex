@@ -17,6 +17,7 @@ defmodule Dakka.Accounts do
     UserNotifier,
     UserSettings,
     UserNotification,
+    UserIdentity,
     UserGameCharacter
   }
 
@@ -191,6 +192,39 @@ defmodule Dakka.Accounts do
   def get_user!(id), do: Repo.get!(User, id)
 
   ## User registration
+
+  def register_discord_user(user_info, token) do
+    if user = get_user_by_provider(:discord, user_info["id"]) do
+      update_discord_token(user, token)
+    else
+      user_info
+      |> User.discord_registation_changeset(token)
+      |> Repo.insert()
+    end
+  end
+
+  def get_user_by_provider(:discord, provider_id) do
+    query =
+      from(u in User,
+        join: i in assoc(u, :user_identities),
+        where: i.provider == "discord" and i.provider_id == ^provider_id
+      )
+
+    Repo.one(query)
+  end
+
+  defp update_discord_token(%User{} = user, new_token) do
+    identity =
+      Repo.one!(from(i in UserIdentity, where: i.user_id == ^user.id and i.provider == "discord"))
+
+    {:ok, _} =
+      identity
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_change(:provider_token, new_token)
+      |> Repo.update()
+
+    {:ok, Repo.preload(user, :user_identities, force: true)}
+  end
 
   @doc """
   Registers a user.

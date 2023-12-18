@@ -22,6 +22,12 @@ defmodule DakkaWeb.Router do
   end
 
   scope "/", DakkaWeb do
+    pipe_through [:browser, :redirect_if_user_is_authenticated]
+
+    get "/oauth/callbacks/:provider", OauthCallbackController, :new
+  end
+
+  scope "/", DakkaWeb do
     pipe_through :browser
 
     get "/credits", PageController, :credits

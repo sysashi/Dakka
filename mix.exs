@@ -55,6 +55,7 @@ defmodule Dakka.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:earmark, "~> 1.4"},
+      {:req, "~> 0.4.8"},
 
       # LV dashboard
       {:phoenix_live_dashboard, "~> 0.8.3"},
