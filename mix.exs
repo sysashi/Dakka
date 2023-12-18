@@ -80,7 +80,7 @@ defmodule Dakka.MixProject do
       {:opentelemetry_oban, "~> 1.0"},
 
       # sentry
-      {:sentry, "~> 9.1"},
+      {:sentry, "~> 10.1"},
 
       # extras
       {:slugify, "~> 1.3"},
