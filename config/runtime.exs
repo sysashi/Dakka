@@ -28,6 +28,14 @@ if app_name = System.get_env("FLY_APP_NAME") do
   config :dakka, :dns_cluster_query, "#{app_name}.internal"
 end
 
+# Dynamically configure oauth for any env
+config :dakka, :oauth,
+  discord: [
+    client_id: System.get_env("DISCORD_CLIENT_ID"),
+    client_secret: System.get_env("DISCORD_CLIENT_SECRET"),
+    redirect_uri: System.get_env("DISCORD_REDIRECT_URI")
+  ]
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

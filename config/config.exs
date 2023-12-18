@@ -74,7 +74,6 @@ config :ex_cldr,
 config :sentry,
   dsn: System.get_env("SENTRY_DSN"),
   client: Dakka.Utils.SentryFinchHTTPClient,
-  included_environments: :all,
   environment_name: config_env(),
   enable_source_code_context: true,
   root_source_code_paths: [File.cwd!()]
@@ -98,12 +97,5 @@ config :dakka, Oban,
   queues: [default: 10]
 
 config :dakka, :admin_usernames, []
-
-config :dakka, :oauth,
-  discord: [
-    client_id: System.get_env("DISCORD_CLIENT_ID"),
-    client_secret: System.get_env("DISCORD_CLIENT_SECRET"),
-    redirect_uri: System.get_env("DISCORD_REDIRECT_URI")
-  ]
 
 import_config "#{config_env()}.exs"
