@@ -31,7 +31,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
           </section>
 
           <section>
-            <.label>Implicit Mods</.label>
+            <.label>Built-in Mods</.label>
             <.mod_filters
               target={@myself}
               field={@form[:implicit_mods]}
@@ -42,7 +42,7 @@ defmodule DakkaWeb.MarketLive.ListingFiltersFormComponent do
           </section>
 
           <section class="">
-            <.label>Explicit Mods</.label>
+            <.label>Added Mods</.label>
             <.mod_filters
               target={@myself}
               field={@form[:explicit_mods]}

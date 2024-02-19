@@ -81,7 +81,7 @@ defmodule DakkaWeb.ImportItemLive do
     socket =
       socket
       |> assign(:uploaded_images, [])
-      |> allow_upload(:item, accept: ~w(.jpeg .jpg .png), max_entries: 1)
+      |> allow_upload(:item, accept: ~w(.jpeg .jpg .png .webp), max_entries: 1)
 
     {:ok, socket}
   end

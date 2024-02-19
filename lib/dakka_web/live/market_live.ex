@@ -179,7 +179,7 @@ defmodule DakkaWeb.MarketLive do
                         )
                       }
                     >
-                      <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Quick Buy
+                      <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Buy
                     </.button>
                     <.button
                       :if={@scope.current_user_id && price_set?(listing)}
@@ -187,7 +187,8 @@ defmodule DakkaWeb.MarketLive do
                       style={:secondary}
                       phx-click={JS.push("create-offer", value: %{id: listing.id})}
                     >
-                      <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" /> Buy
+                      <.icon name="custom-coins" class="h-5 w-5 mr-1 text-[#ffd700]" />
+                      Purchase Request
                     </.button>
                     <.link
                       :if={@scope.current_user_id && listing.open_for_offers}

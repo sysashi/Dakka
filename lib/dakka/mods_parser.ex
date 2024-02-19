@@ -32,25 +32,7 @@ defmodule Dakka.ModsParser do
   value =
     choice([float_value, int_value, string_value])
 
-  # word =
-  #   string(" ")
-  #   |> repeat()
-  #   |> ignore()
-  #   |> ascii_string([?a..?z, ?A..?Z], min: 1)
-  #   |> ignore(optional(string(" ")))
-  #   |> optional(ascii_string([?a..?z, ?A..?Z], min: 1))
-  #   |> reduce({Enum, :join, [" "]})
-  #   |> unwrap_and_tag(:mod)
-
-  # word2 =
-  #   string(" ")
-  #   |> repeat()
-  #   |> ignore()
-  #   |> ascii_string([?a..?z, ?A..?Z], min: 1)
-  #   |> lookahead_not(ascii_char([?a..?z, ?A..?Z, 32]))
-  #   |> tag(:mod)
-
-  word3 =
+  word =
     string(" ")
     |> repeat()
     |> ignore()
@@ -60,8 +42,6 @@ defmodule Dakka.ModsParser do
     |> reduce({Enum, :join, [" "]})
     |> unwrap_and_tag(:mod)
 
-  # mod = times(word, min: 1) |> tag(:mod)
-
   mod_value =
     optional(sign)
     |> concat(value)
@@ -69,8 +49,7 @@ defmodule Dakka.ModsParser do
     |> reduce({__MODULE__, :to_value, []})
     |> unwrap_and_tag(:value)
 
-  # defparsec(:mod_value, optional(sign) |> concat(value) |> optional(sign))
-  defparsec(:mod, optional(mod_value) |> concat(word3) |> optional(mod_value))
+  defparsec(:mod, optional(mod_value) |> concat(word) |> optional(mod_value))
 
   def to_float(value) do
     {value, _} = Float.parse(value)
