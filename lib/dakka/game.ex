@@ -42,6 +42,14 @@ defmodule Dakka.Game do
       ItemBase
       |> where([ib], ib.slug == parent_as(:ib).slug)
       |> join(:inner, [ib], ir in assoc(ib, :item_rarity))
+      |> where(
+        [ib, r],
+        fragment(
+          "case when '{armor, weapon}' && ? then ? > 3 else true end",
+          ib.labels,
+          r.rarity_rank
+        )
+      )
       |> order_by([ib, ir], asc: ir.rarity_rank)
       |> select([ib, ir], %{id: ib.id, rarity: ir.slug, rarity_rank: ir.rarity_rank})
 
