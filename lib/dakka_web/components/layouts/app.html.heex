@@ -31,7 +31,7 @@
             <.link
               navigate={path}
               class={[
-                "text-md leading-6 text-gray-100 font-semibold",
+                "text-md leading-6 text-gray-100 font-semibold py-4",
                 "hover:text-blue-500 hover:underline hover:underline-offset-8",
                 @active_tab == tab && "underline underline-offset-8"
               ]}
@@ -72,7 +72,7 @@
             <li class="relative">
               <a
                 href="#"
-                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline"
+                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline py-2"
                 phx-click={
                   JS.toggle(
                     to: "#settings-dropdown-menu",
@@ -131,7 +131,7 @@
               <.link
                 href={~p"/users/log_out"}
                 method="delete"
-                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline"
+                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline py-2"
               >
                 Log out
               </.link>
@@ -140,7 +140,7 @@
             <li>
               <.link
                 href={~p"/users/register"}
-                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline"
+                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline py-2"
               >
                 Register
               </.link>
@@ -148,7 +148,7 @@
             <li>
               <.link
                 href={~p"/users/log_in"}
-                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline"
+                class="text-[0.8125rem] leading-6 font-semibold hover:text-zinc-300 hover:underline py-2"
               >
                 Log in
               </.link>
