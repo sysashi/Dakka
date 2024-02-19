@@ -430,6 +430,7 @@ defmodule DakkaWeb.CoreComponents do
         "phx-submit-loading:opacity-75",
         "font-semibold leading-6 active:text-white/80",
         "transition-colors duration-100",
+        "disabled:bg-zinc-700 disabled:border-zinc-800 disabled:text-zinc-500",
         @class
       ]}
       {@rest}

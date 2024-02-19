@@ -18,6 +18,74 @@ defmodule Dakka.Game.Import do
 
   alias Ecto.Multi
 
+  def from_image(image_path) do
+    parts =
+      image_path
+      |> TesseractOcr.read()
+      |> Dakka.ModsParser.sanitize_input()
+
+    result =
+      case parts do
+        [item_name | rest] ->
+          mods =
+            for {:ok, data, _, _, _, _} <- Enum.map(rest, &Dakka.ModsParser.mod/1),
+                Keyword.has_key?(data, :value) do
+              data
+              |> Map.new()
+              |> Map.put(:mod_slug, slugify(data[:mod]))
+              |> Map.put(:value_slug, slugify(data[:value]))
+            end
+
+          {:ok,
+           %{
+             item_name: item_name,
+             rarity_slug:
+               Enum.find_value(mods, "common", &(&1[:mod_slug] == "rarity" && &1[:value_slug])),
+             mods: mods
+           }}
+
+        _ ->
+          {:error, :empty}
+      end
+
+    with {:ok, data} <- result,
+         {:ok, item_base} <-
+           Dakka.Game.find_item_base_by_name(data.item_name, data.rarity_slug) do
+      implicit_mods = Enum.map(item_base.implicit_mods, & &1.item_mod.slug)
+
+      {grouped_mods, left_mods} =
+        Enum.reduce(
+          data.mods,
+          {%{implicit: [], explicit: [], properties: []}, implicit_mods},
+          fn mod, {acc, known_mods} ->
+            cond do
+              mod.mod_slug in known_mods ->
+                {Map.update!(acc, :implicit, &(&1 ++ [mod])), known_mods -- [mod.mod_slug]}
+
+              is_number(mod.value_slug) ->
+                {Map.update!(acc, :explicit, &(&1 ++ [mod])), known_mods}
+
+              true ->
+                {Map.update!(acc, :properties, &(&1 ++ [mod])), known_mods}
+            end
+          end
+        )
+
+      if left_mods do
+        Logger.warning("""
+        Could not assocaite item base mods while importing from image!
+        left item base mods: #{inspect(left_mods)}
+        extracted mods: #{inspect(Enum.map(data.mods, & &1.mod))}
+        """)
+      end
+
+      {:ok, item_base, %{data | mods: grouped_mods}}
+    end
+  end
+
+  defp slugify(input) when is_binary(input), do: Recase.to_snake(input)
+  defp slugify(input), do: input
+
   def item_mod_lookup_table() do
     mods =
       ItemMod

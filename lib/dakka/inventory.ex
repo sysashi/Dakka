@@ -233,6 +233,62 @@ defmodule Dakka.Inventory do
     end
   end
 
+  def build_user_item_with_mods(user_item, item_base, mods) do
+    mod_slugs = for {_, mods} <- mods, mod <- mods, uniq: true, do: mod.mod_slug
+
+    item_mods =
+      mod_slugs
+      |> Game.list_item_mods()
+      |> Map.new(&{&1.slug, &1})
+
+    implicit_mods =
+      Enum.reduce(mods.implicit, [], fn mod, acc ->
+        if item_mod = item_mods[mod.mod_slug] do
+          [
+            %UserGameItemMod{
+              mod_type: :implicit,
+              item_mod_id: item_mod.id,
+              label: item_mod.localized_string,
+              value: convert_value(mod.value),
+              value_type: item_mod.value_type,
+              value_float: mod.value
+            }
+            | acc
+          ]
+        else
+          acc
+        end
+      end)
+
+    explicit_mods =
+      Enum.reduce(mods.explicit, [], fn mod, acc ->
+        if item_mod = item_mods[mod.mod_slug] do
+          [
+            %UserGameItemMod{
+              mod_type: :explicit,
+              item_mod_id: item_mod.id,
+              label: item_mod.localized_string,
+              value: convert_value(mod.value),
+              value_type: item_mod.value_type,
+              value_float: mod.value
+            }
+            | acc
+          ]
+        else
+          acc
+        end
+      end)
+
+    user_item
+    |> Changeset.change()
+    |> Changeset.put_assoc(:item_base, item_base)
+    |> Changeset.put_assoc(:explicit_mods, explicit_mods)
+    |> Changeset.put_assoc(:implicit_mods, implicit_mods)
+  end
+
+  defp convert_value(value) when is_float(value), do: trunc(value * 10)
+  defp convert_value(value), do: value
+
   defp convert_to_user_item_mod(%ItemBaseMod{} = item_base_mod, label_fun) do
     value_float =
       if item_base_mod.item_mod.value_type == :percentage and item_base_mod.min_value do

@@ -23,13 +23,41 @@ defmodule DakkaWeb.InventoryLive do
     ~H"""
     <div class="mb-4 border-b border-zinc-700 pb-4">
       <h3 class="text-center mb-2 text-2xl text-gray-500">Add new item</h3>
-      <.live_component
-        module={DakkaWeb.Inventory.AddItemLive}
-        id="add-item"
-        scope={@scope}
-        display_settings={@settings.display}
-      />
+      <div class="flex items-baseline">
+        <div class="flex-1">
+          <.live_component
+            module={DakkaWeb.Inventory.AddItemLive}
+            id="add-item"
+            scope={@scope}
+            display_settings={@settings.display}
+          />
+        </div>
+        <.button style={:secondary} phx-click={JS.patch(~p"/inventory/import_item")}>
+          Upload Image <.icon name="hero-photo" class="w-6 h-6 text-zinc-100 ml-2" />
+        </.button>
+      </div>
     </div>
+    <.modal
+      :if={@live_action in [:import_item]}
+      id="import-item"
+      show
+      on_cancel={JS.patch(~p"/inventory")}
+    >
+      <.live_component
+        id="import-item"
+        module={DakkaWeb.ImportItemLive}
+        on_item_import={
+          fn item_base, data ->
+            send_update(DakkaWeb.Inventory.AddItemLive,
+              id: "add-item",
+              item_base: item_base,
+              imported_data: data
+            )
+          end
+        }
+        patch={~p"/inventory"}
+      />
+    </.modal>
     <article class="flex text-white">
       <section
         id="user-items"
@@ -185,6 +213,10 @@ defmodule DakkaWeb.InventoryLive do
     {:noreply, handle_inventory_event(socket, inventory_event)}
   end
 
+  # def handle_info({:import_item, {item_base, data}}, socket) do
+  #   {:noreply, socket}
+  # end
+
   defp apply_action(socket, :index, _params) do
     assign(socket, :page_title, "Inventory")
   end
@@ -206,6 +238,11 @@ defmodule DakkaWeb.InventoryLive do
     socket
     |> assign(:page_title, "Inventory - Edit Listing")
     |> assign(:listing, listing)
+  end
+
+  defp apply_action(socket, :import_item, _params) do
+    socket
+    |> assign(:page_title, "Inventory - Import Item")
   end
 
   defp maybe_mark_relist(listing, %{"relist" => "true"}), do: %{listing | relist: true}

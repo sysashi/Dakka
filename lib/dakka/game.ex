@@ -108,6 +108,50 @@ defmodule Dakka.Game do
     |> Repo.all()
   end
 
+  def list_item_mods(slugs) do
+    options_query =
+      ItemModValue
+      |> join(:inner, [v], m in assoc(v, :item_mod), on: m.id == parent_as(:mod).id)
+      |> join(:left, [v], ts in TranslationString, on: ts.item_mod_value_id == v.id, as: :ts)
+      |> join(:inner, [ts: ts], lang in assoc(ts, :language), on: lang.code == :en)
+      |> select([v, ts: ts], %{values: fragment("array_agg(array[?, ?])", ts.value, v.slug)})
+
+    from(m in ItemMod, as: :mod)
+    |> where([im], im.slug in ^slugs)
+    |> join(:left, [im], ts in TranslationString, on: ts.item_mod_id == im.id, as: :ts)
+    |> join(:inner, [im, ts], lang in assoc(ts, :language), on: lang.code == :en, as: :lang)
+    |> where([m, lang: l], l.code == :en or m.value_type == :predefined_value)
+    |> join(:left_lateral, [], o in subquery(options_query), as: :options, on: true)
+    |> select(
+      [im, ts: ts, options: o],
+      %{
+        id: im.id,
+        value_type: im.value_type,
+        slug: im.slug,
+        localized_string: ts.value,
+        in_game_id: im.in_game_id,
+        options: o.values
+      }
+    )
+    |> Repo.all()
+  end
+
+  def find_item_base_by_name(name, rarity) do
+    ItemBase
+    |> join(:inner, [ib], ts in TranslationString, on: ts.item_base_id == ib.id, as: :ts)
+    |> join(:inner, [..., ts], lang in assoc(ts, :language), as: :lang)
+    |> join(:inner, [ib], ir in assoc(ib, :item_rarity), as: :rarity)
+    |> where([ts: ts, lang: lang], lang.code == ^:en and ts.key == ^:name)
+    |> where([ts: ts], fragment("? <% ?", ^name, ts.value))
+    |> where([rarity: rarity], rarity.slug == ^rarity)
+    |> order_by([ts: ts], desc: fragment("word_similarity(?, ?)", ^name, ts.value))
+    |> limit(1)
+    |> preload(^item_base_preloads())
+    |> select([ib], %{ib | explicit_mods: []})
+    |> Repo.find()
+    |> format_item_base()
+  end
+
   def get_item_base(id) do
     ItemBase
     |> where(id: ^id)
@@ -132,13 +176,15 @@ defmodule Dakka.Game do
     [:properties, :item_mod_values, :strings]
   ]
 
-  def format_item_base(nil), do: nil
+  def format_item_base({:ok, item_base}), do: {:ok, format_item_base(item_base)}
 
-  def format_item_base(item_base) do
+  def format_item_base(%ItemBase{} = item_base) do
     item_base
     |> drop_unnecesary_fields()
     |> group_translation_strings(@item_base_strings_paths)
   end
+
+  def format_item_base(item_base), do: item_base
 
   # TODO optimize (remove extra passes) or try to avoid doing it at all
   def group_translation_strings(item, paths) do

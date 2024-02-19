@@ -249,6 +249,26 @@ defmodule DakkaWeb.Inventory.AddItemLive do
     {:ok, reset(socket)}
   end
 
+  def update(%{item_base: item_base, imported_data: data}, socket) do
+    user_item = Inventory.build_user_item(socket.assigns.scope, item_base)
+    changeset = Inventory.build_user_item_with_mods(user_item, item_base, data.mods)
+    preview = Inventory.user_item_preview(changeset)
+
+    socket =
+      socket
+      |> reset()
+      |> assign(:form, to_form(changeset))
+      |> assign(:user_item, user_item)
+      |> assign(:changeset, changeset)
+      |> assign(:item_preview, AsyncResult.ok(socket.assigns.item_preview, preview))
+
+    {:ok, socket}
+  end
+
+  def update(assigns, socket) do
+    {:ok, assign(socket, assigns)}
+  end
+
   def reset(socket) do
     socket
     |> assign(:rarities, [])
